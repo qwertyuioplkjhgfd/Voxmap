@@ -1,6 +1,6 @@
 .PHONY: all clean
 
-all: out.vox vox
+all: out.vox
 
 out.svg: in.csv
 	python3 text-pass.py
@@ -19,7 +19,7 @@ out.pgm: out.ora
 	mogrify -format pgm -compress none -flip out-ora/data/*.png
 	mv out-ora/data/*.pgm out-pgm
 
-out.vox: out.pgm
+out.vox: vox out.pgm
 	./vox
 
 clean:
