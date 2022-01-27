@@ -35,7 +35,7 @@ int main()
 
             depth /= 20;
 
-            vox.AddVoxel(x, y, 0, 0); // ground
+            vox.AddVoxel(x, y, 0, 153); // ground
             if (tag == 0) { // ceiling
                 vox.AddVoxel(x, y, depth, depth);
             } else { // wall
