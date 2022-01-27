@@ -6,7 +6,7 @@ out.svg: in.csv
 	python3 text-pass.py
 
 out.ora: out.svg
-	mkdir -p
+	mkdir -p out-ora/data
 	# rasterize depth map
 	convert -flip +antialias out.svg out-ora/data/layer0.png
 	# get edges
@@ -18,14 +18,18 @@ out.ora: out.svg
 out.pgm: out.ora
 	unzip -o out.ora -d out-ora
 	mogrify -format pgm -compress none -flip out-ora/data/*.png
+	mkdir -p out-pgm
 	mv out-ora/data/*.pgm out-pgm
 
 out.vox: vox out.pgm
 	./vox
 
 clean:
-	rm *.o
-	rm vox
+	rm -f *.o
+	rm -f vox
+	rm -rdf out-ora
+	rm -rdf out-pgm
+	rm -f out.ora
 
 VoxWriter.o:
 	clang++ -I./MagicaVoxel_File_Writer -Og -g -std=gnu++20  -o VoxWriter.o -c MagicaVoxel_File_Writer/VoxWriter.cpp
