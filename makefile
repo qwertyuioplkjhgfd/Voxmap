@@ -6,6 +6,7 @@ out.svg: in.csv
 	python3 text-pass.py
 
 out.ora: out.svg
+	mkdir -p
 	# rasterize depth map
 	convert -flip +antialias out.svg out-ora/data/layer0.png
 	# get edges

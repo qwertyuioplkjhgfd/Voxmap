@@ -33,7 +33,7 @@ int main()
             f0 >> depth;
             f1 >> tag;
 
-            depth /= 8;
+            depth /= 20;
 
             vox.AddVoxel(x, y, 0, 0); // ground
             if (tag == 0) { // ceiling
