@@ -19,29 +19,52 @@ int main()
 
     ifstream f0("out-pgm/layer0.pgm");
     ifstream f1("out-pgm/layer1.pgm");
+    ifstream f2("out-pgm/layer2.pgm");
 
 
     f0 >> type >> width >> height >> maxColor;
     f1 >> type >> width >> height >> maxColor;
+    f2 >> type >> width >> height >> maxColor;
+    
+    int GRASS = 153; // green
+    int CONCRETE = 159; // gray
+    int WALL = 1; // white
+    int ROOF = 30; // maroon
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            int depth = 1;
-            int tag = 0;
-            int misc = 0;
+            int depth;
+            int structure;
+            int paint;
+
+            int color;
 
             f0 >> depth;
-            f1 >> tag;
+            f1 >> structure;
+            f2 >> paint;
 
             depth /= 15;
+            structure /= 15;
+            paint /= 15;
 
-            vox.AddVoxel(x, y, 0, 153); // ground
-            if (tag == 0) { // ceiling
-                vox.AddVoxel(x, y, depth, depth);
-            } else { // wall
+            if(paint > 6){ // grass
+                color = GRASS;
+            } else if (paint > 1) {
+                color = WALL;
+            } else if (paint > 0) {
+                color = ROOF;
+            } else {
+                color = CONCRETE;
+            }
+
+            vox.AddVoxel(x, y, 0, CONCRETE);
+            if (structure > 15) { // ceiling
                 for (int z = depth; z > 0; z--) {
-                    vox.AddVoxel(x, y, z, depth);
+                    vox.AddVoxel(x, y, z, color);
+                    color = WALL;
                 }
+            } else {
+                vox.AddVoxel(x, y, depth, color);
             }
         }
     }
