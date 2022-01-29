@@ -27,7 +27,8 @@ int main()
     f2 >> type >> width >> height >> maxColor;
     
     int GRASS = 153; // green
-    int CONCRETE = 159; // gray
+    int STEEL = 159; // blue gray
+    int CONCRETE = 106; // gray
     int WALL = 1; // white
     int ROOF = 30; // maroon
 
@@ -49,6 +50,8 @@ int main()
 
             if(paint > 6){ // grass
                 color = GRASS;
+            } else if (paint > 2) { // steel
+                color = STEEL;
             } else if (paint > 1) {
                 color = WALL;
             } else if (paint > 0) {
@@ -57,12 +60,21 @@ int main()
                 color = CONCRETE;
             }
 
-            vox.AddVoxel(x, y, 0, CONCRETE);
-            if (structure > 15) { // ceiling
-                for (int z = depth; z > 0; z--) {
-                    vox.AddVoxel(x, y, z, color);
+            if(depth > 0) {
+                vox.AddVoxel(x, y, 0, CONCRETE);
+            }
+            if (structure > 14) { // pole or roof
+
+                vox.AddVoxel(x, y, depth, color);
+
+                if (structure > 15) { // if roof, two-tone
                     color = WALL;
                 }
+
+                for (int z = 1; z < depth; z++) {
+                    vox.AddVoxel(x, y, z, color);
+                }
+
             } else {
                 vox.AddVoxel(x, y, depth, color);
             }
