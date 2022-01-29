@@ -8,6 +8,45 @@
 
 using namespace std;
 
+enum paints {
+    Concrete,
+    Roof,
+    Wall,
+    Steel,
+    a,
+    b,
+    c,
+    Bush,
+    Grass,
+};
+
+enum colors {
+    LushGreen = 153,
+    ColdGray = 159,
+    WarmGray = 106,
+    White = 1,
+    Cardinal = 30,
+};
+
+int colorOf(int paint){
+    switch(paint){
+        case Concrete:
+            return WarmGray;
+        case Steel:
+            return ColdGray;
+        case Roof:
+            return Cardinal;
+        case Wall:
+            return White;
+        case Bush:
+            return LushGreen;
+        case Grass:
+            return LushGreen;
+        default:
+            return Concrete;
+    }
+}
+
 int main()
 {
     int width = 0;    //Number of columns
@@ -26,19 +65,12 @@ int main()
     f1 >> type >> width >> height >> maxColor;
     f2 >> type >> width >> height >> maxColor;
     
-    int GRASS = 153; // green
-    int STEEL = 159; // blue gray
-    int CONCRETE = 106; // gray
-    int WALL = 1; // white
-    int ROOF = 30; // maroon
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int depth;
             int structure;
             int paint;
-
-            int color;
 
             f0 >> depth;
             f1 >> structure;
@@ -48,27 +80,16 @@ int main()
             structure /= 15;
             paint /= 15;
 
-            if(paint > 6){ // grass
-                color = GRASS;
-            } else if (paint > 2) { // steel
-                color = STEEL;
-            } else if (paint > 1) {
-                color = WALL;
-            } else if (paint > 0) {
-                color = ROOF;
-            } else {
-                color = CONCRETE;
-            }
-
+            int color = colorOf(paint);
             if(depth > 0) {
-                vox.AddVoxel(x, y, 0, CONCRETE);
+                vox.AddVoxel(x, y, 0, colorOf(Concrete));
             }
-            if (structure > 14) { // pole or roof
+            if (structure > 13) { // pole or wall
 
                 vox.AddVoxel(x, y, depth, color);
 
-                if (structure > 15) { // if roof, two-tone
-                    color = WALL;
+                if (structure > 15) { // if wall, two-tone
+                    color = colorOf(Wall);
                 }
 
                 for (int z = 1; z < depth; z++) {
