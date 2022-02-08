@@ -17,12 +17,17 @@ out.ora: out.svg
 
 out.pgm: out.ora
 	unzip -o out.ora -d out-ora
-	mogrify -format pgm -compress none -flip out-ora/data/*.png
+	mogrify -format pgm -flip out-ora/data/*.png
 	mkdir -p out-pgm
 	mv out-ora/data/*.pgm out-pgm
+	touch out.pgm
 
 out.vox: vox out.pgm
 	./vox
+
+out.sdf: vox out.png
+	convert -threshold 0 out.png pgm:out.sdf
+	python3 sdf-pass.py
 
 clean:
 	rm -f *.o

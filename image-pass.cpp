@@ -1,10 +1,14 @@
 #include "MagicaVoxel_File_Writer/VoxWriter.h"
 
-#include <string>
+#include <cassert>
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <sstream>
+#include <string.h>
+#include <string>
+#include <vector>
 
 using namespace std;
 
@@ -49,32 +53,42 @@ int colorOf(int paint){
 
 int main()
 {
-    int width = 0;    //Number of columns
-    int height = 0;   //Number of rows
-    int maxColor = 0;
-    char type[3]; // pgm
+    string filetype;
+
+    int width;
+    int height;
+    int max;
+
+    string filedesc;
+
+    ifstream f0("out-pgm/layer0.pgm", ios::binary);
+    ifstream f1("out-pgm/layer1.pgm", ios::binary);
+    ifstream f2("out-pgm/layer2.pgm", ios::binary);
+
+    f0 >> filetype >> width >> height >> max;
+    f1 >> filetype >> width >> height >> max;
+    f2 >> filetype >> width >> height >> max;
+
+    getline(f0, filedesc);
+    getline(f1, filedesc);
+    getline(f2, filedesc);
+
+    cout << filetype << endl;
+    cout << width << " x " << height << " x " << max << endl;
+
+    vector<unsigned char> b0(std::istreambuf_iterator<char>(f0), {});
+    vector<unsigned char> b1(std::istreambuf_iterator<char>(f1), {});
+    vector<unsigned char> b2(std::istreambuf_iterator<char>(f2), {});
 
     vox::VoxWriter vox;
 
-    ifstream f0("out-pgm/layer0.pgm");
-    ifstream f1("out-pgm/layer1.pgm");
-    ifstream f2("out-pgm/layer2.pgm");
-
-
-    f0 >> type >> width >> height >> maxColor;
-    f1 >> type >> width >> height >> maxColor;
-    f2 >> type >> width >> height >> maxColor;
-    
-
+    int i = 0;
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            int depth;
-            int structure;
-            int paint;
 
-            f0 >> depth;
-            f1 >> structure;
-            f2 >> paint;
+            int depth = b0[i];
+            int structure = b1[i];
+            int paint = b2[i];
 
             depth /= 15;
             structure /= 15;
@@ -99,6 +113,8 @@ int main()
             } else {
                 vox.AddVoxel(x, y, depth, color);
             }
+
+            i++;
         }
     }
 
