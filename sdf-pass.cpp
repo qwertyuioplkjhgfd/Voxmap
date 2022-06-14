@@ -63,7 +63,20 @@ int main()
 		// find greatest allowable cube's radius as sdf
 		for(int r = 1; r < X; r++){
 			// compute volume with summed volume table
-			int vol = csum(z+r, y+r, x+r) - csum(z-r, y-r, x-r);
+			int vol = 0
+
+				- csum(z-r, y+r, x+r)
+				- csum(z+r, y-r, x+r)
+				- csum(z+r, y+r, x-r)
+
+				+ csum(z+r, y+r, x+r)
+
+				+ csum(z+r, y-r, x-r)
+				+ csum(z-r, y+r, x-r)
+				+ csum(z-r, y-r, x+r)
+
+				- csum(z-r, y-r, x-r)
+			;
 
 			// stop if there exists another block in this cube besides the central one
 			if(vol > 1) {
@@ -75,7 +88,7 @@ int main()
 
 	FOR_XYZ {
 		// put sdf into file
-		sdf_img[Y*z + y][x].red = sum[z][y][x]/10;
+		sdf_img[Y*z + y][x].red = sdf[z][y][x];
 		sdf_img[Y*z + y][x].blue = 0;
 		sdf_img[Y*z + y][x].green = 0;
 	}

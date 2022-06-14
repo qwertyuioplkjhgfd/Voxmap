@@ -3,9 +3,11 @@
 all: out.vox
 
 out.svg: in.csv
+	### rough location data to SVG
 	python3 csv-pass.py
 
 out.old.ora: out.svg
+	### SVG to rastered Krita file containing depth and edges
 	mkdir -p out-ora/data
 	# rasterize depth map
 	convert -flip +antialias out.svg out-ora/data/layer0.png
@@ -16,6 +18,7 @@ out.old.ora: out.svg
 	mv out-ora/out.ora out.ora
 
 out.pgm: out.ora
+	### Krita file to easily-parsable greyscale PGM
 	unzip -o out.ora -d out-ora
 	mogrify -format pgm -flip out-ora/data/*.png
 	mkdir -p out-pgm
@@ -23,12 +26,18 @@ out.pgm: out.ora
 	touch out.pgm
 
 out.vox: vox out.pgm
+	### PGM to 3D MagicaVoxel volume
 	./vox
 
+out.png: out.vox
+	### (MANUAL STEP) open in Goxel and export PNG slices
+
 out.pbm: out.png
+	### PNG slices to PBM
 	convert -threshold 0 out.png out.pbm
 
 out.sdf: sdf out.pbm
+	### PBM to SDF
 	./sdf
 
 final.png: out.png out.sdf
