@@ -3,9 +3,9 @@
 all: out.vox
 
 out.svg: in.csv
-	python3 text-pass.py
+	python3 csv-pass.py
 
-out.ora: out.svg
+out.old.ora: out.svg
 	mkdir -p out-ora/data
 	# rasterize depth map
 	convert -flip +antialias out.svg out-ora/data/layer0.png
@@ -25,9 +25,14 @@ out.pgm: out.ora
 out.vox: vox out.pgm
 	./vox
 
-out.sdf: vox out.png
-	convert -threshold 0 out.png pgm:out.sdf
-	python3 sdf-pass.py
+out.pbm: out.png
+	convert -threshold 0 out.png out.pbm
+
+out.sdf: sdf out.pbm
+	./sdf
+
+final.png: out.png out.sdf
+	echo 0
 
 clean:
 	rm -f *.o
@@ -39,8 +44,11 @@ clean:
 VoxWriter.o:
 	clang++ -I./MagicaVoxel_File_Writer -Og -g -std=gnu++20  -o VoxWriter.o -c MagicaVoxel_File_Writer/VoxWriter.cpp
 
-image-pass.o: image-pass.cpp
-	clang++ -I./MagicaVoxel_File_Writer -Og -g -std=gnu++20  -o image-pass.o -c image-pass.cpp
+vox-pass.o: vox-pass.cpp
+	clang++ -I./MagicaVoxel_File_Writer -Og -g -std=gnu++20  -o vox-pass.o -c vox-pass.cpp
 
-vox: VoxWriter.o image-pass.o
-	clang++ -I. -g -Og -std=gnu++20  -o vox image-pass.o VoxWriter.o
+vox: VoxWriter.o vox-pass.o
+	clang++ -I. -g -Og -std=gnu++20 -o vox vox-pass.o VoxWriter.o
+
+sdf: sdf-pass.cpp
+	clang++ sdf-pass.cpp -g -Og -std=gnu++20 -o sdf
