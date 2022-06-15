@@ -11,7 +11,7 @@ uniform float iTime;
 //The raycasting code is somewhat based around a 2D raycasting toutorial found here:
 //http://lodev.org/cgtutor/raycasting.html
 
-const int MAX_RAY_STEPS = 128;
+const int MAX_RAY_STEPS = 64;
 
 float sdSphere(vec3 p, float d) { return length(p) - d; }
 
@@ -24,15 +24,12 @@ float sdBox( vec3 p, vec3 b )
 
 int sdf(ivec3 c) {
   // center stuff
-  c.x += 512;
-  c.y += 128;
   c.z += 32;
 
-  if(    0 > c.x || c.x >= 1024 
-		|| 0 > c.y || c.y >= 256 
-		|| 0 > c.z || c.z >= 16
-	 ) return max(c.z-1, 0); // floor
-
+  c.x = clamp(c.x + 512, 0, 1023);
+  c.y = clamp(c.y + 128, 0,  255);
+  c.z = clamp(c.z +   8, 0,   15);
+  
   ivec2 p = c.xy;
   p.y += c.z * 256;
 
