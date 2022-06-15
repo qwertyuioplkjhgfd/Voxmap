@@ -28,6 +28,7 @@ enum colors {
     LushGreen = 153,
     ColdGray = 159,
     WarmGray = 106,
+    Gray = 248,
     White = 1,
     Cardinal = 30,
 };
@@ -35,7 +36,7 @@ enum colors {
 int colorOf(int paint){
     switch(paint){
         case Concrete:
-            return WarmGray;
+            return Gray;
         case Steel:
             return ColdGray;
         case Roof:
@@ -61,9 +62,9 @@ int main()
 
     string filedesc;
 
-    ifstream f0("out-pgm/layer0.pgm", ios::binary);
-    ifstream f1("out-pgm/layer1.pgm", ios::binary);
-    ifstream f2("out-pgm/layer2.pgm", ios::binary);
+    ifstream f0("maps/pgm/layer0.pgm", ios::binary);
+    ifstream f1("maps/pgm/layer1.pgm", ios::binary);
+    ifstream f2("maps/pgm/layer2.pgm", ios::binary);
 
     f0 >> filetype >> width >> height >> max;
     f1 >> filetype >> width >> height >> max;
@@ -117,6 +118,6 @@ int main()
         i++;
     }
 
-    vox.SaveToFile("out.vox");
+    vox.SaveToFile("maps/map.vox");
 }
 

@@ -11,7 +11,7 @@ const int X = 1024;
 const int Y = 256;
 const int Z = 16;
 
-const int MAX_RAY_STEPS = Y;
+const int MAX_RAY_STEPS = 128;
 
 ivec3 offset(ivec3 c) {
   //center stuff and project down to 2D
@@ -57,17 +57,11 @@ void main() {
 
   bvec3 mask;
 
-  for (int i = 0; i < MAX_RAY_STEPS; i++) {
-    int d = sdf(mapPos);
+  int d = Z;
+  int i = 0;
+  for (; i < MAX_RAY_STEPS; i++) {
+    d = min(d, sdf(mapPos));
     if (d == 0) break;
-    if (i == MAX_RAY_STEPS - 1 ) {
-      FragColor.rgb = mix(
-	vec3(0.8, 0.9, 1.0), 
-	vec3(0.5, 0.8, 0.9),
-	float(mapPos.z)/100
-      );
-      return;
-    }
     for(int j = 0; j < max(1, d - 1); j++) {
       mask = lessThanEqual(sideDist.xyz, min(sideDist.yzx, sideDist.zxy));
       sideDist += vec3(mask) * deltaDist;
@@ -76,11 +70,22 @@ void main() {
   }
 
   vec3 baseCol = color(mapPos);
-  vec3 heightCol = (vec3(clamp(mapPos.z, 0, Z))/Z + 2)/3;
+  vec3 heightCol = (vec3(clamp(mapPos.z, 0, Z))/Z + 5)/6;
   vec3 shadeCol = mask.x ? vec3(0.6, 0.7, 0.8)
     : mask.y ? vec3(0.7, 0.8, 1.0)
     : mask.z ? vec3(1.0)
     : vec3(0);
+  vec3 skyCol = mix(
+    vec3(0.8, 0.9, 1.0), 
+    vec3(0.5, 0.8, 0.9),
+    float(mapPos.z)/100
+  );
+  vec3 ambCol = mix(vec3(1), vec3(0.1, 0.2, 0.4), float(i)/MAX_RAY_STEPS);
 
-  FragColor.rgb = baseCol * shadeCol * heightCol;
+  vec3 objCol = baseCol * shadeCol * heightCol * ambCol;
+
+  float dist = length(mapPos - rayPos);
+  float skyFactor = (i == MAX_RAY_STEPS) ? 1 : clamp(pow(dist/Y, 3), 0, 1);
+
+  FragColor.rgb = mix( objCol, skyCol, skyFactor );
 }
