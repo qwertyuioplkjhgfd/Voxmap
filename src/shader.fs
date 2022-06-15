@@ -12,6 +12,7 @@ const int Y = 256;
 const int Z = 16;
 
 const int MAX_RAY_STEPS = 128;
+const int MAX_SUN_STEPS = 4;
 
 ivec3 offset(ivec3 c) {
   //center stuff and project down to 2D
@@ -43,7 +44,7 @@ struct MarchResult {
   bvec3 mask;
 };
 
-MarchResult march( vec3 rayDir, vec3 rayPos ) {
+MarchResult march( vec3 rayDir, vec3 rayPos, int MAX_STEPS ) {
   MarchResult res;
 
   res.mapPos = ivec3(floor(rayPos + 0.));
@@ -56,7 +57,7 @@ MarchResult march( vec3 rayDir, vec3 rayPos ) {
   vec3 sideDist = (sign(rayDir) * (vec3(res.mapPos) - rayPos) + (sign(rayDir) * 0.5) + 0.5) * deltaDist;
 
   int dist = 0;
-  while(res.steps < MAX_RAY_STEPS){
+  while(res.steps < MAX_STEPS) {
     for(int j = 0; j < max(1, dist - 1); j++) {
       res.mask = lessThanEqual(sideDist.xyz, min(sideDist.yzx, sideDist.zxy));
       sideDist += vec3(res.mask) * deltaDist;
@@ -82,8 +83,8 @@ void main() {
   //rayPos.xy = rotate2d(rayPos.xy, iTime/10);
   rayDir.xy = rotate2d(rayDir.xy, -iTime/2);
 
-  MarchResult res = march(rayDir, rayPos);
-  MarchResult sun = march(vec3(1,1,1), res.mapPos);
+  MarchResult res = march(rayDir, rayPos, MAX_RAY_STEPS);
+  MarchResult sun = march(vec3(1,1,1), res.mapPos, MAX_SUN_STEPS);
 
   vec3 baseCol = color(res.mapPos);
   vec3 heightCol = (vec3(clamp(res.mapPos.z, 0, Z))/Z + 5)/6;
