@@ -23,7 +23,7 @@ ivec3 offset(ivec3 c) {
 }
 
 int sdf(ivec3 c) {
-  return int(texelFetch(texture2, offset(c), 0).r*16);
+  return int(Z * texelFetch(texture2, offset(c), 0).r);
 }
 
 vec3 color(ivec3 c) {
@@ -42,10 +42,10 @@ void main() {
   vec3 cameraPlaneU = vec3(1, 0, 0);
   vec3 cameraPlaneV = vec3(0, 0, 1) * 9 / 16;
   vec3 rayDir = cameraDir + screenPos.x * cameraPlaneU + screenPos.y * cameraPlaneV;
-  vec3 rayPos = vec3(0.0, -12.0, 32.0);
+  vec3 rayPos = vec3(-300.0, -12.0, 32.0);
 
-  rayPos.xy = rotate2d(rayPos.xy, iTime/10);
-  rayDir.xy = rotate2d(rayDir.xy, iTime/10);
+  //rayPos.xy = rotate2d(rayPos.xy, iTime/10);
+  rayDir.xy = rotate2d(rayDir.xy, iTime/4);
 
   ivec3 mapPos = ivec3(floor(rayPos + 0.));
 
@@ -61,7 +61,11 @@ void main() {
     int d = sdf(mapPos);
     if (d == 0) break;
     if (i == MAX_RAY_STEPS - 1 ) {
-      FragColor = vec4(1);
+      FragColor.rgb = mix(
+	vec3(0.8, 0.9, 1.0), 
+	vec3(0.5, 0.8, 0.9),
+	float(mapPos.z)/100
+      );
       return;
     }
     for(int j = 0; j < max(1, d - 1); j++) {
