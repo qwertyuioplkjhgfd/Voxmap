@@ -3,37 +3,31 @@ out vec4 FragColor;
 
 in vec2 TexCoord;
 
-// texture samplers
 uniform sampler3D texture1;
 uniform sampler3D texture2;
 uniform float iTime;
-
-//The raycasting code is somewhat based around a 2D raycasting toutorial found here:
-//http://lodev.org/cgtutor/raycasting.html
-
 
 const int X = 1024;
 const int Y = 256;
 const int Z = 16;
 
-const int MAX_RAY_STEPS = X;
+const int MAX_RAY_STEPS = Y;
 
-ivec3 project(ivec3 c){
+ivec3 offset(ivec3 c) {
   //center stuff and project down to 2D
   return ivec3(
-	 clamp(c.x + X/2, 0, X-1),
-	 clamp(c.y + Y/2, 0, Y-1),
-	 clamp(c.z, 0, Z-1)
+      clamp(c.x + X/2, 0, X-1),
+      clamp(c.y + Y/2, 0, Y-1),
+      clamp(c.z, 0, Z-1)
   );
 }
 
 int sdf(ivec3 c) {
-//  return int(texelFetch(texture1, project(c), 0).a > 0 ? 0 : 1);
-  return int(texelFetch(texture2, project(c), 0).r*16);
+  return int(texelFetch(texture2, offset(c), 0).r*16);
 }
 
 vec3 color(ivec3 c) {
-  return texelFetch(texture1, project(c), 0).rgb;
+  return texelFetch(texture1, offset(c), 0).rgb;
 }
 
 vec2 rotate2d(vec2 v, float a) {
@@ -64,18 +58,17 @@ void main() {
   bvec3 mask;
 
   for (int i = 0; i < MAX_RAY_STEPS; i++) {
-	 int d = sdf(mapPos);
-	 if (d == 0) break;
-	 if (i == MAX_RAY_STEPS - 1 ) {
-		FragColor = vec4(1);
-		return;
-	 }
-
-	 mask = lessThanEqual(sideDist.xyz, min(sideDist.yzx, sideDist.zxy));
-
-	 d = max(1, d/2);
-	 sideDist += d * vec3(mask) * deltaDist;
-	 mapPos += d * ivec3(mask) * rayStep;
+    int d = sdf(mapPos);
+    if (d == 0) break;
+    if (i == MAX_RAY_STEPS - 1 ) {
+      FragColor = vec4(1);
+      return;
+    }
+    for(int j = 0; j < max(1, d - 1); j++) {
+      mask = lessThanEqual(sideDist.xyz, min(sideDist.yzx, sideDist.zxy));
+      sideDist += vec3(mask) * deltaDist;
+      mapPos += ivec3(mask) * rayStep;
+    }
   }
 
   vec3 baseCol = color(mapPos);
