@@ -4,36 +4,35 @@ out vec4 FragColor;
 in vec2 TexCoord;
 
 // texture samplers
-uniform sampler2D texture1;
-uniform sampler2D texture2;
+uniform sampler3D texture1;
+uniform sampler3D texture2;
 uniform float iTime;
 
 //The raycasting code is somewhat based around a 2D raycasting toutorial found here:
 //http://lodev.org/cgtutor/raycasting.html
 
-const int MAX_RAY_STEPS = 64;
 
-float sdSphere(vec3 p, float d) { return length(p) - d; }
+const int X = 1024;
+const int Y = 256;
+const int Z = 16;
 
-float sdBox( vec3 p, vec3 b )
-{
-  vec3 d = abs(p) - b;
-  return min(max(d.x,max(d.y,d.z)),0.0) +
-    length(max(d,0.0));
+const int MAX_RAY_STEPS = X;
+
+ivec3 project(ivec3 c){
+  //center stuff and project down to 2D
+  return ivec3(
+	 clamp(c.x + X/2, 0, X-1),
+	 clamp(c.y + Y/2, 0, Y-1),
+	 clamp(c.z + Z/2, 0, Z-1)
+  );
 }
 
 int sdf(ivec3 c) {
-  // center stuff
-  c.z += 32;
+  return int(texelFetch(texture2, project(c), 0).r * 255);
+}
 
-  c.x = clamp(c.x + 512, 0, 1023);
-  c.y = clamp(c.y + 128, 0,  255);
-  c.z = clamp(c.z +   8, 0,   15);
-  
-  ivec2 p = c.xy;
-  p.y += c.z * 256;
-
-  return int(texelFetch(texture2, p, 0).r * 256);
+vec3 color(ivec3 c) {
+  return texelFetch(texture1, project(c), 0).rgb;
 }
 
 vec2 rotate2d(vec2 v, float a) {
@@ -48,7 +47,7 @@ void main() {
   vec3 cameraPlaneU = vec3(1, 0, 0);
   vec3 cameraPlaneV = vec3(0, 0, 1) * 6 / 8;
   vec3 rayDir = cameraDir + screenPos.x * cameraPlaneU + screenPos.y * cameraPlaneV;
-  vec3 rayPos = vec3(0.0, -12.0, 2.0 * sin(iTime * 2.7));
+  vec3 rayPos = vec3(0.0, -12.0, 32.0);
 
   rayPos.xy = rotate2d(rayPos.xy, iTime/10);
   rayDir.xy = rotate2d(rayDir.xy, iTime/10);
@@ -65,28 +64,28 @@ void main() {
 
   for (int i = 0; i < MAX_RAY_STEPS; i++) {
 	 int d = sdf(mapPos);
-    if (d == 0) break;
+	 if (d == 0) break;
 	 if (i == MAX_RAY_STEPS - 1 ) {
-		FragColor = vec4(0);
+		FragColor = vec4(1);
 		return;
 	 }
 
-    mask = lessThanEqual(sideDist.xyz, min(sideDist.yzx, sideDist.zxy));
+	 mask = lessThanEqual(sideDist.xyz, min(sideDist.yzx, sideDist.zxy));
 
-	 d = clamp(1, d - 1, 15);
-    sideDist += d * vec3(mask) * deltaDist;
-    mapPos += d * ivec3(vec3(mask)) * rayStep;
+	 d = max(1, d/2);
+	 d = 1;
+	 sideDist += d * vec3(mask) * deltaDist;
+	 mapPos += d * ivec3(mask) * rayStep;
   }
 
-  vec3 color;
-  if (mask.x) {
-    color = vec3(1,0,0);
-  }
-  if (mask.y) {
-    color = vec3(0,1,0);
-  }
-  if (mask.z) {
-    color = vec3(0,0,1);
-  }
-  FragColor.rgb = color;
+  vec3 shading = mask.x ? vec3(1,0,0)
+    : mask.y ? vec3(0,1,0)
+    : mask.z ? vec3(0,0,1)
+    : vec3(0);
+
+  shading *= float(clamp(mapPos.z,0,Z))/Z;
+
+  mapPos.z -= 1;
+
+  FragColor.rgb = mix(shading, color(mapPos), 0.5);
 }
