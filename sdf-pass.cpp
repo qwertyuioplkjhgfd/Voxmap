@@ -34,7 +34,6 @@ int main()
 		;
 	};
 
-	int H;
 	FOR_XYZ {
 		// put image bits into 3D existence table
 		bin[z][y][x] = bin_img[Y*z + y][x].red ? 1 : 0;

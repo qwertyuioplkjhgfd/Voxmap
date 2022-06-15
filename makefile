@@ -61,3 +61,7 @@ vox: VoxWriter.o vox-pass.o
 
 sdf: sdf-pass.cpp
 	clang++ sdf-pass.cpp -g -Og -std=gnu++20 -o sdf
+
+viewer: viewer.cpp glad.c
+	clang++ viewer.cpp glad.c -ldl -lglfw -o viewer
+

@@ -46,7 +46,7 @@ void main() {
 	vec3 cameraPlaneU = vec3(1.0, 0.0, 0.0);
 	vec3 cameraPlaneV = vec3(0.0, 1.0, 0.0);
 	vec3 rayDir = cameraDir + screenPos.x * cameraPlaneU + screenPos.y * cameraPlaneV;
-	vec3 rayPos = vec3(0.0, 2.0 * sin(iTime * 2.7), -12.0);
+	vec3 rayPos = vec3(50.0, 2.0 * sin(iTime * 2.7), -12.0);
 
 	rayPos.xz = rotate2d(rayPos.xz, iTime);
 	rayDir.xz = rotate2d(rayDir.xz, iTime);
