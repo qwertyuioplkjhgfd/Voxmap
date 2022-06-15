@@ -1,5 +1,3 @@
-#include "MagicaVoxel_File_Writer/VoxWriter.h"
-
 #include <cassert>
 #include <cmath>
 #include <fstream>
@@ -9,6 +7,8 @@
 #include <string.h>
 #include <string>
 #include <vector>
+
+#include "../libs/MagicaVoxel_File_Writer/VoxWriter.h"
 
 using namespace std;
 

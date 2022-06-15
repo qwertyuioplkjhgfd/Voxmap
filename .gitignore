@@ -1,10 +1,4 @@
-in.*
-out.*
-out-*
-
-*.gch
-
-*.o
+bin/*
+maps/*
 *.swp
-*.out
 *~

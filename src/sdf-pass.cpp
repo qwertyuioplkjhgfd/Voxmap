@@ -1,4 +1,4 @@
-#include "pnm.hpp"
+#include "../libs/pnm.hpp"
 #include <iostream>
 #include <cassert>
 

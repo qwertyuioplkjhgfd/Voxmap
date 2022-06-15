@@ -11,7 +11,7 @@ out = [
 
 points = []
 
-with open('in.csv') as filein:
+with open('maps/map.csv') as filein:
   for line in reversed(filein.readlines()):
     x, y = line.split(comma)
     if x.startswith('-'):

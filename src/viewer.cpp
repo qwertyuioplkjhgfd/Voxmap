@@ -1,12 +1,12 @@
+#include <iostream>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "../libs/learnopengl.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include "../libs/stb_image.h"
 
-#include <learnopengl/shader_s.h>
-
-#include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -50,7 +50,7 @@ int main()
 
     // build and compile our shader zprogram
     // ------------------------------------
-    Shader ourShader("vertex.glsl", "fragment.glsl");
+    Shader ourShader("src/shader.vs", "src/shader.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------

@@ -1,67 +1,65 @@
 .PHONY: all clean
 
-all: out.vox
+all: maps/map.sdf
 
-out.svg: in.csv
-	### rough location data to SVG
-	python3 csv-pass.py
+maps/map.csv:
+	### (MANUAL STEP) data collection
 
-out.old.ora: out.svg
+maps/map.svg: maps/map.csv
+	### rough location maps to SVG
+	python3 src/csv-pass.py
+
+maps/old.map.ora: maps/map.svg
 	### SVG to rastered Krita file containing depth and edges
-	mkdir -p out-ora/data
+	mkdir -p maps/ora/maps
 	# rasterize depth map
-	convert -flip +antialias out.svg out-ora/data/layer0.png
+	convert -flip +antialias maps/map.svg maps/ora/data/layer0.png
 	# get edges
-	convert -threshold 0 -edge 1 +antialias out-ora/data/layer0.png out-ora/data/layer1.png
+	convert -threshold 0 -edge 1 +antialias maps/ora/data/layer0.png maps/ora/data/layer1.png
 	# zip into .ora
-	cd out-ora && zip -r out.ora * && cd ..
-	mv out-ora/out.ora out.ora
+	cd maps/ora && zip -r map.ora * && cd ..
+	mv maps/ora/map.ora maps/out.map.ora
 
-out.pgm: out.ora
+maps/map.ora: maps/old.map.ora
+	### (MANUAL STEP) clean up data in Krita
+
+maps/map.pgm: maps/map.ora
 	### Krita file to easily-parsable greyscale PGM
-	unzip -o out.ora -d out-ora
-	mogrify -format pgm -flip out-ora/data/*.png
-	mkdir -p out-pgm
-	mv out-ora/data/*.pgm out-pgm
-	touch out.pgm
+	unzip -o maps/map.ora -d maps/ora
+	mogrify -format pgm -flip maps/ora/data/*.png
+	mkdir -p maps/pgm
+	mv maps/ora/data/*.pgm maps/pgm
+	touch maps/pgm/*.pgm
 
-out.vox: vox out.pgm
+maps/map.vox: bin/vox maps/map.pgm
 	### PGM to 3D MagicaVoxel volume
-	./vox
+	bin/vox
 
-out.png: out.vox
+maps/map.png: maps/map.vox
 	### (MANUAL STEP) open in Goxel and export PNG slices
 
-out.pbm: out.png
+maps/map.pbm: maps/map.png
 	### PNG slices to PBM
-	convert -threshold 0 out.png out.pbm
+	convert -threshold 0 maps/map.png maps/map.pbm
 
-out.sdf: sdf out.pbm
+maps/map.sdf: bin/sdf maps/map.pbm
 	### PBM to SDF
-	./sdf
+	bin/sdf
 
-final.png: out.png out.sdf
-	echo 0
+bin/VoxWriter.o:
+	clang++ -I libs/MagicaVoxel_File_Writer -Og -g -std=gnu++20 \
+		-o bin/VoxWriter.o -c libs/MagicaVoxel_File_Writer/VoxWriter.cpp
 
-clean:
-	rm -f *.o
-	rm -f vox
-	rm -rdf out-ora
-	rm -rdf out-pgm
-	rm -f out.ora
+bin/vox-pass.o: src/vox-pass.cpp
+	clang++ -I libs/MagicaVoxel_File_Writer -Og -g -std=gnu++20 \
+		-o bin/vox-pass.o -c src/vox-pass.cpp
 
-VoxWriter.o:
-	clang++ -I./MagicaVoxel_File_Writer -Og -g -std=gnu++20  -o VoxWriter.o -c MagicaVoxel_File_Writer/VoxWriter.cpp
+bin/vox: bin/VoxWriter.o bin/vox-pass.o
+	clang++ -I. -g -Og -std=gnu++20 -o bin/vox bin/vox-pass.o bin/VoxWriter.o
 
-vox-pass.o: vox-pass.cpp
-	clang++ -I./MagicaVoxel_File_Writer -Og -g -std=gnu++20  -o vox-pass.o -c vox-pass.cpp
+bin/sdf: src/sdf-pass.cpp
+	clang++ src/sdf-pass.cpp -g -Og -std=gnu++20 -o bin/sdf
 
-vox: VoxWriter.o vox-pass.o
-	clang++ -I. -g -Og -std=gnu++20 -o vox vox-pass.o VoxWriter.o
-
-sdf: sdf-pass.cpp
-	clang++ sdf-pass.cpp -g -Og -std=gnu++20 -o sdf
-
-viewer: viewer.cpp glad.c
-	clang++ viewer.cpp glad.c -ldl -lglfw -o viewer
+bin/viewer: src/viewer.cpp libs/glad.c
+	clang++ src/viewer.cpp libs/glad.c -ldl -lglfw -o bin/viewer
 
