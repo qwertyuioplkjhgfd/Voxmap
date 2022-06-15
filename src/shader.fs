@@ -28,8 +28,8 @@ ivec3 project(ivec3 c){
 }
 
 int sdf(ivec3 c) {
-  return int(texelFetch(texture1, project(c), 0).a > 0 ? 0 : 1);
-  return int(texelFetch(texture2, project(c), 0).r * 255);
+//  return int(texelFetch(texture1, project(c), 0).a > 0 ? 0 : 1);
+  return int(texelFetch(texture2, project(c), 0).r*16);
 }
 
 vec3 color(ivec3 c) {

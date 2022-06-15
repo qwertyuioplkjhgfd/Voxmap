@@ -19,8 +19,8 @@ int main()
 {
 	using namespace pnm::literals;
 
-	pnm::image<pnm::rgb_pixel> bin_img = pnm::read("out.pbm");
-	pnm::image<pnm::rgb_pixel> sdf_img = pnm::read("out.ppm");
+	pnm::image<pnm::rgb_pixel> bin_img = pnm::read("maps/map.pbm");
+	pnm::image<pnm::rgb_pixel> sdf_img = pnm::read("maps/map.ppm");
 
 	assert( X == bin_img.width() );
 	assert( Y*Z == bin_img.height() );
@@ -60,6 +60,13 @@ int main()
 
 	FOR_XYZ {
 		// find greatest allowable cube's radius as sdf
+
+		if(bin[z][y][x] > 0){
+			// no cube inside blocks
+			sdf[z][y][x] = 0;
+			continue;
+		}
+
 		for(int r = 1; r < Z; r++){
 			// compute volume with summed volume table
 			int vol = 0
@@ -77,9 +84,9 @@ int main()
 				- csum(z-r, y-r, x-r)
 			;
 
-			// stop if there exists another block in this cube besides the central one
-			if(vol > 1) {
-				sdf[z][y][x] = r-1;
+			// stop if there exists a block
+			if(vol > 0) {
+				sdf[z][y][x] = r;
 				break;
 			}
 		}
@@ -87,12 +94,12 @@ int main()
 
 	FOR_XYZ {
 		// put sdf into file
-		sdf_img[Y*z + y][x].red = sdf[z][y][x];
+		sdf_img[Y*z + y][x].red = sdf[z][y][x]*Z;
 		sdf_img[Y*z + y][x].blue = 0;
 		sdf_img[Y*z + y][x].green = 0;
 	}
 
-	pnm::write("out.ppm", sdf_img, pnm::format::binary);
+	pnm::write("maps/map.ppm", sdf_img, pnm::format::binary);
 	return 0;
 }
 
