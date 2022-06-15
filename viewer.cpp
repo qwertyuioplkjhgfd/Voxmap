@@ -12,8 +12,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1600;
+const unsigned int SCR_HEIGHT = 900;
 
 int main()
 {
@@ -81,56 +81,30 @@ int main()
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    int width, height, nrChannels;
 
     // load and create a texture 
     // -------------------------
     unsigned int texture1, texture2;
+    stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
     // texture 1
     // ---------
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_3D, texture1); 
-     // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    // The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     unsigned char *data = stbi_load("color.png", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, width, height/16, 16, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_3D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, width, height/16, 16, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     stbi_image_free(data);
+    
     // texture 2
     // ---------
     glGenTextures(1, &texture2);
     glBindTexture(GL_TEXTURE_3D, texture2);
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     data = stbi_load("sdf.png", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, width, height/16, 16, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_3D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, width, height/16, 16, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     stbi_image_free(data);
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)

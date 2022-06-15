@@ -23,11 +23,12 @@ ivec3 project(ivec3 c){
   return ivec3(
 	 clamp(c.x + X/2, 0, X-1),
 	 clamp(c.y + Y/2, 0, Y-1),
-	 clamp(c.z + Z/2, 0, Z-1)
+	 clamp(c.z, 0, Z-1)
   );
 }
 
 int sdf(ivec3 c) {
+  return int(texelFetch(texture1, project(c), 0).a > 0 ? 0 : 1);
   return int(texelFetch(texture2, project(c), 0).r * 255);
 }
 
@@ -45,7 +46,7 @@ void main() {
   vec2 screenPos = TexCoord;
   vec3 cameraDir = vec3(0, 1, -0.5);
   vec3 cameraPlaneU = vec3(1, 0, 0);
-  vec3 cameraPlaneV = vec3(0, 0, 1) * 6 / 8;
+  vec3 cameraPlaneV = vec3(0, 0, 1) * 9 / 16;
   vec3 rayDir = cameraDir + screenPos.x * cameraPlaneU + screenPos.y * cameraPlaneV;
   vec3 rayPos = vec3(0.0, -12.0, 32.0);
 
@@ -73,19 +74,16 @@ void main() {
 	 mask = lessThanEqual(sideDist.xyz, min(sideDist.yzx, sideDist.zxy));
 
 	 d = max(1, d/2);
-	 d = 1;
 	 sideDist += d * vec3(mask) * deltaDist;
 	 mapPos += d * ivec3(mask) * rayStep;
   }
 
-  vec3 shading = mask.x ? vec3(1,0,0)
-    : mask.y ? vec3(0,1,0)
-    : mask.z ? vec3(0,0,1)
+  vec3 baseCol = color(mapPos);
+  vec3 heightCol = vec3(clamp(mapPos.z, 0, Z))/Z;
+  vec3 shadeCol = mask.x ? vec3(0.3, 0.4, 0.8)
+    : mask.y ? vec3(0.2, 0.5, 0.9)
+    : mask.z ? vec3(1.0)
     : vec3(0);
 
-  shading *= float(clamp(mapPos.z,0,Z))/Z;
-
-  mapPos.z -= 1;
-
-  FragColor.rgb = mix(shading, color(mapPos), 0.5);
+  FragColor.rgb = mix(baseCol, mix(shadeCol, heightCol, 0.5), 0.5);
 }
