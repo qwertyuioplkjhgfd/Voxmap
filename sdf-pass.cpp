@@ -28,9 +28,9 @@ int main()
 	// clamped sum access
 	auto csum = [&](int _z, int _y, int _x){
 		return sum
-			[std::clamp(_z,0,Z)]
-			[std::clamp(_y,0,Y)]
-			[std::clamp(_x,0,X)]
+			[std::clamp(_z,0,Z-1)]
+			[std::clamp(_y,0,Y-1)]
+			[std::clamp(_x,0,X-1)]
 		;
 	};
 
@@ -60,7 +60,7 @@ int main()
 
 	FOR_XYZ {
 		// find greatest allowable cube's radius as sdf
-		for(int r = 1; r < X; r++){
+		for(int r = 1; r < Z; r++){
 			// compute volume with summed volume table
 			int vol = 0
 
