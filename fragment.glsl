@@ -79,11 +79,11 @@ void main() {
   }
 
   vec3 baseCol = color(mapPos);
-  vec3 heightCol = vec3(clamp(mapPos.z, 0, Z))/Z;
-  vec3 shadeCol = mask.x ? vec3(0.3, 0.4, 0.8)
-    : mask.y ? vec3(0.2, 0.5, 0.9)
+  vec3 heightCol = (vec3(clamp(mapPos.z, 0, Z))/Z + 2)/3;
+  vec3 shadeCol = mask.x ? vec3(0.6, 0.7, 0.8)
+    : mask.y ? vec3(0.7, 0.8, 1.0)
     : mask.z ? vec3(1.0)
     : vec3(0);
 
-  FragColor.rgb = mix(baseCol, mix(shadeCol, heightCol, 0.5), 0.5);
+  FragColor.rgb = baseCol * shadeCol * heightCol;
 }
