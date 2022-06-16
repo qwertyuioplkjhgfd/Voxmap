@@ -64,5 +64,5 @@ bin/sdf: src/sdf-pass.cpp
 	clang++ src/sdf-pass.cpp -g -Og -std=gnu++20 -o bin/sdf
 
 bin/viewer: src/viewer.cpp libs/glad.c
-	clang++ src/viewer.cpp libs/glad.c -ldl -lglfw -o bin/viewer
+	clang++ src/viewer.cpp libs/glad.c -ldl -lglfw -O3 -o bin/viewer
 
