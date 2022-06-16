@@ -23,13 +23,12 @@ async function main(){
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
         gl.bindTexture(gl.TEXTURE_2D,texture)
         
-        gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,texture_png)
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB8UI,
+                      gl.RGB_INTEGER, gl.UNSIGNED_BYTE, texture_png)
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-        gl.generateMipmap(gl.TEXTURE_2D)
     }
     texture_png.src = "maps/texture.png"
 
@@ -105,8 +104,8 @@ function render(now) {
 
     gl.uniform2f(handles.resolution, gl.canvas.width, gl.canvas.height)
     gl.uniform1f(handles.time, time)
-    gl.uniform3f(handles.rotation, time, time, time)
-    gl.uniform3f(handles.position, time, time, time+30)
+    gl.uniform3f(handles.rotation, time, time, time/10)
+    gl.uniform3f(handles.position, 128*Math.cos(time/17), 64*Math.sin(time/13), 30)
 
     gl.drawArrays(gl.TRIANGLES, 0, 6)
 
@@ -125,6 +124,6 @@ function start () {
 
 
 function resize () {
-    resizeCanvasToDisplaySize(gl.canvas, 1/3)
+    resizeCanvasToDisplaySize(gl.canvas, 1/2)
 }
 

@@ -5,7 +5,7 @@ out vec4 FragColor;
 
 in vec2 TexCoord;
 
-uniform highp sampler2D texture1;
+uniform highp usampler2D texture1;
 uniform vec2 iResolution;
 uniform float iTime;
 uniform vec3 camRot;
@@ -18,7 +18,7 @@ const int Z = 16;
 const float Yf = 256.0;
 const float Zf = 16.0;
 
-const int MAX_RAY_STEPS = 128;
+const int MAX_RAY_STEPS = 200;
 const int MAX_SUN_STEPS = 5;
 
 ivec2 offset(ivec3 c) {
@@ -29,12 +29,17 @@ ivec2 offset(ivec3 c) {
   );
 }
 
+ivec3 tex(ivec3 c) {
+  return ivec3(texelFetch(texture1, offset(c), 0));
+}
+
 int sdf(ivec3 c) {
-  return int(Zf * texelFetch(texture1, offset(c), 0).r);
+  return tex(c).r;
 }
 
 vec3 color(ivec3 c) {
-  return texelFetch(texture1, offset(c) + ivec2(X,-Y), 0).rgb;
+  int p = tex(c).g-2;
+  return p<=0?vec3(0):p<=17?vec3(0.4375,0.484375,0.453125):p<=97?vec3(0.523438,0.648438,0.589844):p<=103?vec3(0.132812,0.488281,0.316406):p<=225?vec3(0.843137,0.10196,0.12549):p<=255?vec3(0.996094,0.996094,0.996094):vec3(1);
 }
 
 vec2 rotate2d(vec2 v, float a) {
@@ -65,14 +70,16 @@ March march( vec3 rayPos, vec3 rayDir, int MAX_STEPS ) {
 
   int dist = 0;
   while(res.step < MAX_STEPS) {
-    for(int j = 0; j < max(1, dist - 1); j++) {
+    for(int j = 0; j < max(1, dist/16 - 1); j++) {
       mask = lessThanEqual(sideDist.xyz, min(sideDist.yzx, sideDist.zxy));
       sideDist += vec3(mask) * deltaDist;
       res.cellPos += ivec3(mask) * rayStep;
     }
     dist = sdf(res.cellPos);
     res.minDist = min(dist, res.minDist);
-    if(dist == 0) break;
+    if(tex(res.cellPos).r == 0) {
+      break;
+    }
     res.step++;
   }
   res.normal = -sign(rayDir) * vec3(mask);
@@ -105,9 +112,6 @@ void main() {
   // Start coloring 
   
   FragColor = vec4(1);
-  if(res.normal.z > 0.) res.cellPos.z --;
-  if(res.normal.y > 0.) res.cellPos.y --;
-  if(res.normal.x < 0.) res.cellPos.x ++;
   
   vec3 baseCol = color(res.cellPos);
 
@@ -130,7 +134,7 @@ void main() {
   float sunFactor = 0.;
   if(dot(res.normal, sunDir) > 0.){
     March sun = march(vec3(res.cellPos), sunDir, MAX_SUN_STEPS);
-    sunFactor = clamp(float(sun.minDist)/2., 0., 1.);
+    sunFactor = clamp(float(sun.minDist), 0., 1.);
   }
   vec3 sunCol = mix(vec3(0.3, 0.5, 0.7), vec3(1), sunFactor);
 
