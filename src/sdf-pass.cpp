@@ -19,8 +19,7 @@ int main()
 {
 	using namespace pnm::literals;
 
-	pnm::image<pnm::rgb_pixel> bin_img = pnm::read("maps/map.pbm");
-	pnm::image<pnm::rgb_pixel> sdf_img = pnm::read("maps/map.ppm");
+	pnm::image<pnm::rgba_pixel> col_img = pnm::read("maps/map.pam");
 
 	assert( X == bin_img.width() );
 	assert( Y*Z == bin_img.height() );

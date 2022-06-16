@@ -38,16 +38,16 @@ maps/map.vox: bin/vox maps/map.pgm
 maps/map.png: maps/map.vox
 	### (MANUAL STEP) open in Goxel and export PNG slices
 
-maps/map.pbm: maps/map.png
-	### PNG slices to PBM
-	convert -threshold 0 maps/map.png maps/map.pbm
+maps/map.pam: maps/map.png
+	### PNG slices to PAM
+	convert -threshold 0 maps/map.png maps/map.pam
 
-maps/map.sdf: bin/sdf maps/map.pbm
+maps/texture.ppm: bin/sdf maps/map.ppm
 	### PBM to SDF
 	bin/sdf
 
-maps/texture.png: maps/sdf.png maps/color.png
-	convert maps/sdf.png maps/color.png +append maps/texture.png
+maps/texture.png:
+	convert maps/texture.ppm maps/texture.png
 
 bin/VoxWriter.o:
 	clang++ -I libs/MagicaVoxel_File_Writer -Og -g -std=gnu++20 \

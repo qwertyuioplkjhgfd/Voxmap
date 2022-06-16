@@ -1,9 +1,12 @@
 #version 330 core
+precision highp float;
+
 out vec4 FragColor;
 
 in vec2 TexCoord;
 
-uniform sampler3D texture1;
+uniform highp sampler2D texture1;
+uniform vec2 iResolution;
 uniform float iTime;
 uniform vec3 camRot;
 uniform vec3 camPos;
@@ -12,24 +15,26 @@ const int X = 1024;
 const int Y = 256;
 const int Z = 16;
 
+const float Yf = 256.0;
+const float Zf = 16.0;
+
 const int MAX_RAY_STEPS = 128;
 const int MAX_SUN_STEPS = 5;
 
-ivec3 offset(ivec3 c) {
+ivec2 offset(ivec3 c) {
   //center stuff and project down to 2D
-  return ivec3(
+  return ivec2(
     clamp(c.x + X/2, 0, X-1),
-    clamp(c.y + Y/2, 0, Y-1),
-    clamp(c.z, 0, Z-1)
+    clamp(c.y + Y/2, 0, Y-1) + Y * clamp(c.z, 0, Z-1)
   );
 }
 
 int sdf(ivec3 c) {
-  return int(Z * texelFetch(texture1, offset(c), 0).r);
+  return int(Zf * texelFetch(texture1, offset(c), 0).r);
 }
 
 vec3 color(ivec3 c) {
-  return texelFetch(texture1, offset(c) + ivec3(1024,0,0), 0).rgb;
+  return texelFetch(texture1, offset(c) + ivec2(X,-Y), 0).rgb;
 }
 
 vec2 rotate2d(vec2 v, float a) {
@@ -95,11 +100,14 @@ March march(vec3 rayPos, vec3 rayDir, int MAX_STEPS) {
 }
 
 void main() {
+
+  // Marching setup
+  
   vec2 screenPos = TexCoord;
 
   vec3 camDir = vec3(0, 1, 0);
   vec3 camPlaneU = vec3(1, 0, 0);
-  vec3 camPlaneV = vec3(0, 0, 1) * 9 / 16;
+  vec3 camPlaneV = vec3(0, 0, 1) * iResolution.y / iResolution.x;
 
   vec3 rayDir = normalize(
       camDir
@@ -113,9 +121,13 @@ void main() {
 
   March res = march(camPos, rayDir, MAX_RAY_STEPS);
 
+  // Start coloring 
+  
+  FragColor = vec4(1);
+  
   vec3 baseCol = color(res.cellPos);
 
-  vec3 heightCol = (vec3(clamp(res.rayPos.z, 0, Z))/Z + 5)/6;
+  vec3 heightCol = (vec3(clamp(res.rayPos.z, 0., Zf))/Zf + 5.)/6.;
 
   vec3 shadeCol = mat3x3(
     0.6, 0.7, 0.8,
@@ -126,22 +138,23 @@ void main() {
   vec3 skyCol = mix(
     vec3(0.8, 0.9, 1.0),
     vec3(0.5, 0.8, 0.9),
-    float(res.rayPos.z)/100
+    float(res.rayPos.z)/100.
   );
 
   vec3 ambCol = vec3(1);//mix(vec3(1), vec3(0.1, 0.2, 0.4), float(res.step)/MAX_RAY_STEPS);
 
-  float sunFactor = 0;
-  if(dot(res.normal, sunDir) > 0){
+  float sunFactor = 0.;
+  if(dot(res.normal, sunDir) > 0.){
     March sun = march(res.rayPos, sunDir, MAX_SUN_STEPS);
-    sunFactor = clamp(sun.minDist, 0, 1);
+    sunFactor = clamp(sun.minDist, 0., 1.);
   }
   vec3 sunCol = mix(vec3(0.3, 0.5, 0.7), vec3(1), sunFactor);
 
   vec3 objCol = baseCol * shadeCol * heightCol * ambCol * sunCol;
 
   float dist = length(res.rayPos - camPos);
-  float skyFactor = (res.step == MAX_RAY_STEPS) ? 1 : clamp(pow(dist/Y, 3), 0, 1);
+  float skyFactor = (res.step == MAX_RAY_STEPS) ? 1. 
+    : clamp(pow(dist/Yf, 3.), 0., 1.);
 
   FragColor.rgb = mix( objCol, skyCol, skyFactor );
 
