@@ -10,7 +10,10 @@ const texture_png = new Image()
 let program
 let handles
 
-let timeSamples = Array(10).fill(0)
+const N = 30
+let timeSamples = Array(30).fill(0)
+let upSample = 4
+let fps = 1
 let then = 0
 let time = 0
 let running = false
@@ -81,6 +84,13 @@ async function main(){
 
     start()
     window.addEventListener('resize',resize)
+    setInterval(()=>{
+        let target = 30
+        upSample *= target/fps
+        upSample = Math.max(1, Math.min(upSample,16))
+        resize()
+    },1000)
+
     resize()
 }
 
@@ -95,7 +105,8 @@ function render(now) {
 
     timeSamples.shift()
     timeSamples.push(delta)
-    debug.innerText = Math.round(10 * timeSamples.length / timeSamples.reduce((a, b) => a + b, 0)) / 10 + ' fps'
+    fps = Math.round(N * timeSamples.length / timeSamples.reduce((a, b) => a + b, 0)) / N
+    debug.innerText = upSample.toPrecision(3) + ' x, ' + fps.toPrecision(3) + ' fps' 
 
     time += delta
     then = now
@@ -105,7 +116,7 @@ function render(now) {
     gl.uniform2f(handles.resolution, gl.canvas.width, gl.canvas.height)
     gl.uniform1f(handles.time, time)
     gl.uniform3f(handles.rotation, time, time, time/10)
-    gl.uniform3f(handles.position, 128*Math.cos(time/17), 64*Math.sin(time/13), 30)
+    gl.uniform3f(handles.position, 128*Math.cos(time/17), 64*Math.sin(time/13), 16)
 
     gl.drawArrays(gl.TRIANGLES, 0, 6)
 
@@ -124,6 +135,6 @@ function start () {
 
 
 function resize () {
-    resizeCanvasToDisplaySize(gl.canvas, 1/2)
+    resizeCanvasToDisplaySize(gl.canvas, 1/upSample)
 }
 

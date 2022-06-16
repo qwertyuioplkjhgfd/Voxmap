@@ -34,7 +34,9 @@ ivec3 tex(ivec3 c) {
 }
 
 int sdf(ivec3 c) {
-  return tex(c).r;
+  //if(abs(c.x)>X/2 || abs(c.y)>Y/2 || c.z>Z) return -1;
+  int d = tex(c).r;
+  return d;
 }
 
 vec3 color(ivec3 c) {
@@ -77,7 +79,7 @@ March march( vec3 rayPos, vec3 rayDir, int MAX_STEPS ) {
     }
     dist = sdf(res.cellPos);
     res.minDist = min(dist, res.minDist);
-    if(tex(res.cellPos).r == 0) {
+    if(dist < 1) {
       break;
     }
     res.step++;
