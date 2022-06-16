@@ -126,7 +126,7 @@ int main()
         ourShader.use();
         ourShader.setFloat("iTime", t);
         ourShader.setVec3("camRot", t,t,t);
-        ourShader.setVec3("camPos", t-100,t,t);
+        ourShader.setVec3("camPos", t-100,t,t+6);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
