@@ -11,8 +11,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 450;
+const unsigned int SCR_WIDTH = 320;
+const unsigned int SCR_HEIGHT = 180;
 
 int main()
 {
@@ -84,7 +84,7 @@ int main()
 
     // load and create a texture 
     // -------------------------
-    unsigned int texture1, texture2;
+    unsigned int texture1;
     stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
     // texture 1
     // ---------
@@ -92,25 +92,14 @@ int main()
     glBindTexture(GL_TEXTURE_3D, texture1); 
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    unsigned char *data = stbi_load("color.png", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("maps/texture.png", &width, &height, &nrChannels, 0);
     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, width, height/16, 16, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    stbi_image_free(data);
-    
-    // texture 2
-    // ---------
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_3D, texture2);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    data = stbi_load("sdf.png", &width, &height, &nrChannels, 0);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, width, height/16, 16, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
     stbi_image_free(data);
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
     ourShader.use(); // don't forget to activate/use the shader before setting uniforms!
     ourShader.setInt("texture1", 0);
-    ourShader.setInt("texture2", 1);
 
 
 
@@ -130,12 +119,13 @@ int main()
         // bind textures on corresponding texture units
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_3D, texture1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_3D, texture2);
 
         // render container
+        float t = glfwGetTime()/3;
         ourShader.use();
-        ourShader.setFloat("iTime", glfwGetTime());
+        ourShader.setFloat("iTime", t);
+        ourShader.setVec3("camRot", t,t,t);
+        ourShader.setVec3("camPos", t-100,t,t);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

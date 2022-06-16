@@ -4,15 +4,16 @@ out vec4 FragColor;
 in vec2 TexCoord;
 
 uniform sampler3D texture1;
-uniform sampler3D texture2;
 uniform float iTime;
+uniform vec3 camRot;
+uniform vec3 camPos;
 
 const int X = 1024;
 const int Y = 256;
 const int Z = 16;
 
 const int MAX_RAY_STEPS = 128;
-const int MAX_SUN_STEPS = 8;
+const int MAX_SUN_STEPS = 5;
 
 ivec3 offset(ivec3 c) {
   //center stuff and project down to 2D
@@ -24,11 +25,11 @@ ivec3 offset(ivec3 c) {
 }
 
 int sdf(ivec3 c) {
-  return int(Z * texelFetch(texture2, offset(c), 0).r);
+  return int(Z * texelFetch(texture1, offset(c), 0).r);
 }
 
 vec3 color(ivec3 c) {
-  return texelFetch(texture1, offset(c), 0).rgb;
+  return texelFetch(texture1, offset(c) + ivec3(1024,0,0), 0).rgb;
 }
 
 vec2 rotate2d(vec2 v, float a) {
@@ -96,23 +97,21 @@ March march(vec3 rayPos, vec3 rayDir, int MAX_STEPS) {
 void main() {
   vec2 screenPos = TexCoord;
 
-  vec3 cameraPos = vec3(-300.0, -12.0, 32.0);
-  vec3 cameraDir = vec3(0, 1, -0.5);
-  vec3 cameraPlaneU = vec3(1, 0, 0);
-  vec3 cameraPlaneV = vec3(0, 0, 1) * 9 / 16;
+  vec3 camDir = vec3(0, 1, 0);
+  vec3 camPlaneU = vec3(1, 0, 0);
+  vec3 camPlaneV = vec3(0, 0, 1) * 9 / 16;
 
   vec3 rayDir = normalize(
-      cameraDir
-      + screenPos.x * cameraPlaneU
-      + screenPos.y * cameraPlaneV
+      camDir
+      + screenPos.x * camPlaneU
+      + screenPos.y * camPlaneV
       );
 
-  //rayPos.xy = rotate2d(rayPos.xy, iTime/10);
-  rayDir.xy = rotate2d(rayDir.xy, -iTime/20);
+  rayDir.xy = rotate2d(rayDir.xy, camRot.z);
 
   vec3 sunDir = normalize(vec3(1,1,1));
 
-  March res = march(cameraPos, rayDir, MAX_RAY_STEPS);
+  March res = march(camPos, rayDir, MAX_RAY_STEPS);
 
   vec3 baseCol = color(res.cellPos);
 
@@ -130,7 +129,7 @@ void main() {
     float(res.rayPos.z)/100
   );
 
-  vec3 ambCol = mix(vec3(1), vec3(0.1, 0.2, 0.4), float(res.step)/MAX_RAY_STEPS);
+  vec3 ambCol = vec3(1);//mix(vec3(1), vec3(0.1, 0.2, 0.4), float(res.step)/MAX_RAY_STEPS);
 
   float sunFactor = 0;
   if(dot(res.normal, sunDir) > 0){
@@ -141,7 +140,7 @@ void main() {
 
   vec3 objCol = baseCol * shadeCol * heightCol * ambCol * sunCol;
 
-  float dist = length(res.rayPos - cameraPos);
+  float dist = length(res.rayPos - camPos);
   float skyFactor = (res.step == MAX_RAY_STEPS) ? 1 : clamp(pow(dist/Y, 3), 0, 1);
 
   FragColor.rgb = mix( objCol, skyCol, skyFactor );
@@ -150,7 +149,7 @@ void main() {
   //Compute cheap ambient occlusion from the SDF.
   float ao = smoothstep(-1.0, 1.0, sdf(rayPos)),
   //Fade out to black using the distance.
-  fog = min(1.0, exp(1.0 - length(rayPos-cameraPos)/8.0));
+  fog = min(1.0, exp(1.0 - length(rayPos-camPos)/8.0));
 
    */
   //Output final color with ao and fog (sqrt for gamma correction).

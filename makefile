@@ -46,6 +46,9 @@ maps/map.sdf: bin/sdf maps/map.pbm
 	### PBM to SDF
 	bin/sdf
 
+maps/texture.png: maps/sdf.png maps/color.png
+	convert maps/sdf.png maps/color.png +append maps/texture.png
+
 bin/VoxWriter.o:
 	clang++ -I libs/MagicaVoxel_File_Writer -Og -g -std=gnu++20 \
 		-o bin/VoxWriter.o -c libs/MagicaVoxel_File_Writer/VoxWriter.cpp
