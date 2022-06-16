@@ -50,11 +50,10 @@ March march(vec3 rayPos, vec3 rayDir, int MAX_STEPS) {
   March res;
 
   res.rayPos = rayPos;
-  res.cellPos = ivec3(rayPos);
   res.minDist = float(Z);
   res.step = 0;
 
-  int dist = 1;
+  int dist = 3;
 
   // Start marchin'
   while(res.step < MAX_STEPS && dist != 0) {
@@ -109,7 +108,7 @@ void main() {
       );
 
   //rayPos.xy = rotate2d(rayPos.xy, iTime/10);
-  rayDir.xy = rotate2d(rayDir.xy, -iTime/2);
+  rayDir.xy = rotate2d(rayDir.xy, -iTime/20);
 
   vec3 sunDir = normalize(vec3(1,1,1));
 
