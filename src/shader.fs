@@ -34,7 +34,6 @@ ivec3 tex(ivec3 c) {
 }
 
 int sdf(ivec3 c) {
-  //if(abs(c.x)>X/2 || abs(c.y)>Y/2 || c.z>Z) return -1;
   int d = tex(c).r;
   return d;
 }
@@ -93,7 +92,7 @@ void main() {
 
   // Marching setup
   
-  vec2 screenPos = TexCoord;
+  vec2 screenPos = TexCoord / 2.;
 
   vec3 camDir = vec3(0, 1, 0);
   vec3 camPlaneU = vec3(1, 0, 0);
@@ -105,6 +104,7 @@ void main() {
       + screenPos.y * camPlaneV
       );
 
+  rayDir.yz = rotate2d(rayDir.yz, camRot.y);
   rayDir.xy = rotate2d(rayDir.xy, camRot.z);
 
   vec3 sunDir = normalize(vec3(1,1,1));

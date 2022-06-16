@@ -1,22 +1,31 @@
+const debug = document.querySelector("div")
+const joystick = document.querySelector("svg")
 const canvas = document.querySelector("canvas")
 const gl = canvas.getContext("webgl2")
 
-const debug = document.querySelector("div")
-
 const texture = gl.createTexture()
 const texture_png = new Image()
+
+const ns = 'http://www.w3.org/2000/svg'
 
 // look up where the vertex data needs to go.
 let program
 let handles
 
 const N = 30
+let size = 100
 let timeSamples = Array(30).fill(0)
 let upSample = 4
 let fps = 1
 let then = 0
 let time = 0
 let running = false
+
+const camera = {
+    pos: { x: -200, y: 0, z: 3 },
+    vel: { x: 0, y: 0, z: 0 },
+    rot: { x: 0, y: 0, z: 0 },
+}
 
 main()
 
@@ -84,6 +93,14 @@ async function main(){
 
     start()
     window.addEventListener('resize',resize)
+    canvas.addEventListener('pointermove',(event)=>{
+        camera.rot.z += event.movementX/size
+        camera.rot.y += event.movementY/size
+    })
+    joystick.addEventListener('pointermove',(event)=>{
+        camera.vel.x = 10 * Math.pow(2*event.offsetX/size - 1, 3)
+        camera.vel.y =-10 * Math.pow(2*event.offsetY/size - 1, 3)
+    })
     setInterval(()=>{
         let target = 30
         upSample *= target/fps
@@ -101,12 +118,27 @@ function prerender(){
 }
 function render(now) {
     now *= 0.001 // convert to seconds
-    const delta = Math.min(now - then, 0.1)
+    const delta = now - then
 
     timeSamples.shift()
     timeSamples.push(delta)
     fps = Math.round(N * timeSamples.length / timeSamples.reduce((a, b) => a + b, 0)) / N
-    debug.innerText = upSample.toPrecision(3) + ' x, ' + fps.toPrecision(3) + ' fps' 
+
+    camera.pos.x += camera.vel.x*delta
+    camera.pos.y += camera.vel.y*delta
+    camera.pos.z += camera.vel.z*delta
+
+    const rev = v => ( Math.sign(v) * Math.pow(Math.abs(v), 1/3) || 0 )
+    joystick.lastElementChild.style.transform = 
+        `translate(${rev(camera.vel.x)}vmin, ${-rev(camera.vel.y)}vmin)`
+
+    debug.innerText = camera.vel.y.toPrecision(3) + 'm/s'
+    + upSample.toPrecision(3) + ' x, ' 
+    + fps.toPrecision(3) + ' fps' 
+
+    camera.vel.x *= 0.2 ** delta
+    camera.vel.y *= 0.2 ** delta
+    camera.vel.z *= 0.2 ** delta
 
     time += delta
     then = now
@@ -115,8 +147,8 @@ function render(now) {
 
     gl.uniform2f(handles.resolution, gl.canvas.width, gl.canvas.height)
     gl.uniform1f(handles.time, time)
-    gl.uniform3f(handles.rotation, time, time, time/10)
-    gl.uniform3f(handles.position, 128*Math.cos(time/17), 64*Math.sin(time/13), 16)
+    gl.uniform3f(handles.position, camera.pos.x, camera.pos.y, camera.pos.z)
+    gl.uniform3f(handles.rotation, camera.rot.x, camera.rot.y, camera.rot.z)
 
     gl.drawArrays(gl.TRIANGLES, 0, 6)
 
@@ -135,6 +167,7 @@ function start () {
 
 
 function resize () {
+    size = Math.min(window.innerWidth, window.innerHeight)
     resizeCanvasToDisplaySize(gl.canvas, 1/upSample)
 }
 
