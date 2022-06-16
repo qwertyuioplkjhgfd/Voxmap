@@ -100,7 +100,7 @@ function render(now) {
     gl.uniform2f(handles.resolution, gl.canvas.width, gl.canvas.height)
     gl.uniform1f(handles.time, time)
     gl.uniform3f(handles.rotation, time, time, time)
-    gl.uniform3f(handles.position, time, time, time)
+    gl.uniform3f(handles.position, time, time, time+30)
 
     gl.drawArrays(gl.TRIANGLES, 0, 6)
 
@@ -119,6 +119,6 @@ function start () {
 
 
 function resize () {
-    resizeCanvasToDisplaySize(gl.canvas, 1.0)
+    resizeCanvasToDisplaySize(gl.canvas, 1/5)
 }
 

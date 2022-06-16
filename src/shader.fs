@@ -125,6 +125,7 @@ void main() {
   
   FragColor = vec4(1);
   
+  res.cellPos -= max(ivec3(0), ivec3(res.normal));
   vec3 baseCol = color(res.cellPos);
 
   vec3 heightCol = (vec3(clamp(res.rayPos.z, 0., Zf))/Zf + 5.)/6.;
