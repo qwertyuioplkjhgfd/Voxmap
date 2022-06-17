@@ -24,9 +24,9 @@ const int MAX_SUN_STEPS = 5;
 ivec2 offset(ivec3 c) {
   //center stuff and project down to 2D
   return ivec2(
-    clamp(c.x + X/2, 0, X-1),
-    clamp(c.y + Y/2, 0, Y-1) + Y * clamp(c.z, 0, Z-1)
-  );
+      clamp(c.x + X/2, 0, X-1),
+      clamp(c.y + Y/2, 0, Y-1) + Y * clamp(c.z, 0, Z-1)
+      );
 }
 
 ivec3 tex(ivec3 c) {
@@ -51,39 +51,68 @@ vec2 rotate2d(vec2 v, float a) {
 
 struct March {
   ivec3 cellPos;
+  vec3 rayPos;
   vec3 normal;
   int minDist;
   int step;
 };
 
 March march( vec3 rayPos, vec3 rayDir, int MAX_STEPS ) {
-
   March res;
 
   res.cellPos = ivec3(floor(rayPos + 0.));
+  res.rayPos = rayPos;
+  res.normal;
   res.minDist = Z;
   res.step = 0;
-  
+
+  int dist = 4*16;
+
+#ifdef MARCH_INTS
   bvec3 mask = bvec3(0);
   vec3 deltaDist = abs(vec3(length(rayDir)) / rayDir);
   ivec3 rayStep = ivec3(sign(rayDir));
   vec3 sideDist = (sign(rayDir) * (vec3(res.cellPos) - rayPos) + (sign(rayDir) * 0.5) + 0.5) * deltaDist;
+#endif
 
-  int dist = 0;
-  while(res.step < MAX_STEPS) {
+  // Start marchin'
+  while(res.step < MAX_STEPS && dist != 0) {
+
+#ifdef MARCH_INTS
     for(int j = 0; j < max(1, dist/16 - 1); j++) {
       mask = lessThanEqual(sideDist.xyz, min(sideDist.yzx, sideDist.zxy));
       sideDist += vec3(mask) * deltaDist;
       res.cellPos += ivec3(mask) * rayStep;
     }
+#else
+    //Axis distance to nearest cell (with a small bias).
+    vec3 axisCellDist = fract(-res.rayPos * sign(rayDir)) + 1e-4;
+    //Raytraced distance to each axis.
+    vec3 axisRayDist = axisCellDist / abs(rayDir);
+    //Nearest axis' raytrace distance (as a vec3).
+    vec3 minAxis = vec3(lessThanEqual(
+          axisRayDist.xyz, min(
+            axisRayDist.yzx,
+            axisRayDist.zxy
+          )));
+    float trueDist = max(1.,float(dist/16)-1.);
+    //Step to the nearest voxel cell.
+    res.rayPos += rayDir * trueDist * length(minAxis * axisRayDist);
+    //Get the cell position (center of the voxel).
+    res.cellPos = ivec3(res.rayPos);
+    res.normal = -minAxis * sign(rayDir);
+#endif
+
     dist = sdf(res.cellPos);
     res.minDist = min(dist, res.minDist);
-    if(dist < 1) {
-      break;
-    }
+
     res.step++;
   }
+
+#ifdef MARCH_INTS
   res.normal = -sign(rayDir) * vec3(mask);
+  res.rayPos = vec3(res.cellPos);
+#endif
 
   return res;
 }
@@ -91,7 +120,7 @@ March march( vec3 rayPos, vec3 rayDir, int MAX_STEPS ) {
 void main() {
 
   // Marching setup
-  
+
   vec2 screenPos = TexCoord / 2.;
 
   vec3 camDir = vec3(0, 1, 0);
@@ -111,31 +140,31 @@ void main() {
 
   March res = march(camPos, rayDir, MAX_RAY_STEPS);
 
-  // Start coloring 
-  
+  // Start coloring
+
   FragColor = vec4(1);
-  
+
   vec3 baseCol = color(res.cellPos);
 
   vec3 heightCol = (vec3(clamp(res.cellPos.z, 0, Z))/Zf + 5.)/6.;
 
   vec3 shadeCol = mat3x3(
-    0.6, 0.7, 0.8,
-    0.7, 0.8, 1.0,
-    1.0, 1.0, 1.0
-  ) * abs(res.normal);
+      0.6, 0.7, 0.8,
+      0.7, 0.8, 1.0,
+      1.0, 1.0, 1.0
+      ) * abs(res.normal);
 
   vec3 skyCol = mix(
-    vec3(0.8, 0.9, 1.0),
-    vec3(0.5, 0.8, 0.9),
-    float(res.cellPos.z)/100.
-  );
+      vec3(0.8, 0.9, 1.0),
+      vec3(0.5, 0.8, 0.9),
+      float(res.cellPos.z)/100.
+      );
 
   vec3 ambCol = vec3(1);//mix(vec3(1), vec3(0.1, 0.2, 0.4), float(res.step)/MAX_RAY_STEPS);
 
   float sunFactor = 0.;
   if(dot(res.normal, sunDir) > 0.){
-    March sun = march(vec3(res.cellPos), sunDir, MAX_SUN_STEPS);
+    March sun = march(vec3(res.rayPos), sunDir, MAX_SUN_STEPS);
     sunFactor = clamp(float(sun.minDist), 0., 1.);
   }
   vec3 sunCol = mix(vec3(0.3, 0.5, 0.7), vec3(1), sunFactor);
@@ -143,7 +172,7 @@ void main() {
   vec3 objCol = baseCol * shadeCol * heightCol * ambCol * sunCol;
 
   float dist = length(vec3(res.cellPos) - camPos);
-  float skyFactor = (res.step == MAX_RAY_STEPS) ? 1. 
+  float skyFactor = (res.step == MAX_RAY_STEPS) ? 1.
     : clamp(pow(dist/Yf, 3.), 0., 1.);
 
   FragColor.rgb = mix( objCol, skyCol, skyFactor );
