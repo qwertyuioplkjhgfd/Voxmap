@@ -7,14 +7,25 @@ const int X = 1024;
 const int Y = 256;
 const int Z = 16;
 
+int lum[Z][Y][X]; // color
 int bin[Z][Y][X]; // 1 if block, else 0
 int sum[Z][Y][X]; // summed volume table
 int sdf[Z][Y][X]; // radius of largest fittng cube centered at block
+
+#define KEY 69420
 
 #define FOR_XYZ \
 for(int z = 0; z < Z; z++) \
 for(int y = 0; y < Y; y++) \
 for(int x = 0; x < X; x++)
+
+int hash(int a, int b){
+	return (a + b)*(a + b + 1) + b*2;
+}
+int hash(int a, int b, int c, int d){
+	return 0;
+	return hash(hash(hash(hash(a,b),c),d),KEY) % 255;
+}
 
 int main()
 {
@@ -39,11 +50,11 @@ int main()
 
 	FOR_XYZ {
 		// put image bits into 3D existence table
-		int lum = int(img[Y*z + y][x].red);
-		bin[z][y][x] = lum ? 1 : 0;
+		lum[z][y][x] = int(img[Y*z + y][x].red);
+		bin[z][y][x] = lum[z][y][x] ? 1 : 0;
 
 		// check palette
-		pal.insert(lum);
+		pal.insert(lum[z][y][x]);
 	}
 	
 	std::cout << "return ";
@@ -111,8 +122,10 @@ int main()
 	}
 
 	FOR_XYZ {
-		// put sdf into file
-		img[Y*z + y][x].red = sdf[z][y][x]*Z;
+		// bad encryption
+		img[Y*z + y][x].red = sdf[z][y][x]*Z ^ hash(z,y,x,0);
+		img[Y*z + y][x].green = lum[z][y][x] ^ hash(z,y,x,1);
+		img[Y*z + y][x].blue = 0 ^ hash(z,y,x,2);
 	}
 
 	pnm::write("maps/texture.ppm", img, pnm::format::binary);

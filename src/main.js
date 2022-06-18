@@ -93,6 +93,7 @@ async function main(){
 
     start()
     window.addEventListener('resize',resize)
+<<<<<<< HEAD
     canvas.addEventListener('pointermove',(event)=>{
 <<<<<<< HEAD
         camera.rot.z += event.movementX/size
@@ -101,6 +102,18 @@ async function main(){
         camera.rot.z += 3 * event.movementX/size
         camera.rot.x += 3 * event.movementY/size
 >>>>>>> 0e15432... Fix camera rotation
+=======
+    document.addEventListener('click',()=>{
+        canvas.requestPointerLock()
+    })
+    canvas.addEventListener('pointermove',(event)=>{
+        controls.rot.z -= event.movementX/size
+        controls.rot.x -= event.movementY/size
+        controls.rot.x = Math.max(-0.2, Math.min(controls.rot.x, 0.2))
+    })
+    joystick.addEventListener('touchstart',()=>{
+        controls.move.active = true
+>>>>>>> 0fe8566... Limiting pitch, also nonfunctional hashing
     })
     joystick.addEventListener('pointermove',(event)=>{
         camera.vel.x = 10 * Math.pow(2*event.offsetX/size - 1, 3)
@@ -109,6 +122,7 @@ async function main(){
     window.addEventListener('keypress', (event) => {
         let wishdir = camera.rot.z
         switch (event.code) {
+<<<<<<< HEAD
             case 'KeyW':
                 wishdir += Math.PI/2
                 break;
@@ -119,6 +133,39 @@ async function main(){
                 wishdir += 3*Math.PI/2
                 break;
             case 'KeyD':
+=======
+            case "KeyW":
+            case "ArrowUp":
+                controls.move.y = 1
+                break;
+            case "KeyS":
+            case "ArrowDown":
+                controls.move.y = -1
+                break;
+            case "KeyA":
+            case "ArrowLeft":
+                controls.move.x = -1
+                break;
+            case "KeyD":
+            case "ArrowRight":
+                controls.move.x = 1
+                break;
+        }
+    })
+    window.addEventListener('keyup', (event) => {
+        switch (event.code) {
+            case "KeyW":
+            case "KeyS":
+            case "ArrowUp":
+            case "ArrowDown":
+                controls.move.y = 0
+                break;
+            case "KeyA":
+            case "KeyD":
+            case "ArrowLeft":
+            case "ArrowRight":
+                controls.move.x = 0
+>>>>>>> 0fe8566... Limiting pitch, also nonfunctional hashing
                 break;
         }
 
@@ -156,9 +203,31 @@ function render(now) {
     joystick.lastElementChild.style.transform = 
         `translate(${rev(camera.vel.x)}vmin, ${-rev(camera.vel.y)}vmin)`
 
+<<<<<<< HEAD
     debug.innerText = camera.vel.y.toPrecision(3) + 'm/s'
     + upSample.toPrecision(3) + ' x, ' 
     + fps.toPrecision(3) + ' fps' 
+=======
+    const num = x => x.toPrecision(3)
+    const yrd = x => num(x/2)
+
+    debug.innerText = `${num(fps)} fps, ${num(upSample)} upscaling
+        position (m): ${yrd(camera.pos.x)}, ${yrd(camera.pos.y)}, ${yrd(camera.pos.z)}
+        velocity (m/s): ${yrd(camera.vel.x)}, ${yrd(camera.vel.y)}, ${yrd(camera.vel.z)}
+    `
+
+    let sin = Math.sin(camera.rot.z)
+    let cos = Math.cos(camera.rot.z)
+    let ax = (controls.move.x * 100 * cos) - (controls.move.y * 100 * sin)
+    let ay = (controls.move.x * 100 * sin) + (controls.move.y * 100 * cos)
+
+    let drag = 1/8
+    ax -= camera.vel.x/delta*drag
+    ay -= camera.vel.y/delta*drag
+    
+    camera.vel.x += ax * delta
+    camera.vel.y += ay * delta
+>>>>>>> 0fe8566... Limiting pitch, also nonfunctional hashing
 
     camera.vel.x *= 0.2 ** delta
     camera.vel.y *= 0.2 ** delta
