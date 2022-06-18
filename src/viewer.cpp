@@ -115,11 +115,41 @@ int main() {
 
     // render container
     float t = glfwGetTime() / 3;
+<<<<<<< HEAD
     ourShader.setFloat("iTime", t);
     ourShader.setVec3("camRot", t, t, t);
     ourShader.setVec3("camPos", t - 100, t, t + 6);
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+=======
+    // uniforms!
+
+    // render
+    // ------
+    // bind to framebuffer and draw scene as we normally would to color texture
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+    marchShader.use();
+    marchShader.setVec2("iResolution", SCR_WIDTH, SCR_HEIGHT);
+    marchShader.setFloat("iTime", t);
+    marchShader.setVec3("camRot", 0, 0, t);
+    marchShader.setVec3("camPos", t - 100, t, 6);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, mapTexture);
+    glBindVertexArray(quadVertexArray);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    filterShader.use();
+    filterShader.setVec2("iResolution", SCR_WIDTH, SCR_HEIGHT);
+    filterShader.setFloat("iTime", t);
+    filterShader.setVec3("camRot", 0, 0, t);
+    filterShader.setVec3("camPos", t - 100, t, 6);
+
+    glBindVertexArray(quadVertexArray);
+    glBindTexture(GL_TEXTURE_2D, frameTexture);   // use the color attachment texture as the texture of the quad plane
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+>>>>>>> 0e15432... Fix camera rotation
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved
     // etc.)

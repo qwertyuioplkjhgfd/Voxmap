@@ -1,6 +1,0 @@
-bin/*
-maps/*
-*.swp
-*~
-.gdb_history
-.gitignore

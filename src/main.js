@@ -94,8 +94,13 @@ async function main(){
     start()
     window.addEventListener('resize',resize)
     canvas.addEventListener('pointermove',(event)=>{
+<<<<<<< HEAD
         camera.rot.z += event.movementX/size
         camera.rot.y += event.movementY/size
+=======
+        camera.rot.z += 3 * event.movementX/size
+        camera.rot.x += 3 * event.movementY/size
+>>>>>>> 0e15432... Fix camera rotation
     })
     joystick.addEventListener('pointermove',(event)=>{
         camera.vel.x = 10 * Math.pow(2*event.offsetX/size - 1, 3)

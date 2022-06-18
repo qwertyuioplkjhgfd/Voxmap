@@ -66,8 +66,14 @@ March march( vec3 rayPos, vec3 rayDir, int MAX_STEPS ) {
   res.minDist = Z;
   res.step = 0;
 
+<<<<<<< HEAD:src/shader.fs
   int dist = 4*16;
 
+=======
+  int dist = 16;
+
+//#define MARCH_INTS
+>>>>>>> 0e15432... Fix camera rotation:src/shaders/march.fragment.glsl
 #ifdef MARCH_INTS
   bvec3 mask = bvec3(0);
   vec3 deltaDist = abs(vec3(length(rayDir)) / rayDir);
@@ -86,7 +92,11 @@ March march( vec3 rayPos, vec3 rayDir, int MAX_STEPS ) {
     }
 #else
     //Axis distance to nearest cell (with a small bias).
+<<<<<<< HEAD:src/shader.fs
     vec3 axisCellDist = fract(-res.rayPos * sign(rayDir)) + 1e-4;
+=======
+    axisCellDist = fract(-res.rayPos * sign(rayDir)) + 1e-4;
+>>>>>>> 0e15432... Fix camera rotation:src/shaders/march.fragment.glsl
     //Raytraced distance to each axis.
     vec3 axisRayDist = axisCellDist / abs(rayDir);
     //Nearest axis' raytrace distance (as a vec3).
@@ -133,10 +143,11 @@ void main() {
       + screenPos.y * camPlaneV
       );
 
-  rayDir.yz = rotate2d(rayDir.yz, camRot.y);
+  rayDir.yz = rotate2d(rayDir.yz, camRot.x);
   rayDir.xy = rotate2d(rayDir.xy, camRot.z);
 
   vec3 sunDir = normalize(vec3(1,1,1));
+  sunDir.xy = rotate2d(sunDir.xy, iTime);
 
   March res = march(camPos, rayDir, MAX_RAY_STEPS);
 
@@ -164,7 +175,7 @@ void main() {
 
   float sunFactor = 0.;
   if(dot(res.normal, sunDir) > 0.){
-    March sun = march(vec3(res.rayPos), sunDir, MAX_SUN_STEPS);
+    March sun = march(res.rayPos, sunDir, MAX_SUN_STEPS);
     sunFactor = clamp(float(sun.minDist), 0., 1.);
   }
   vec3 sunCol = mix(vec3(0.3, 0.5, 0.7), vec3(1), sunFactor);
