@@ -31,19 +31,23 @@
 		canvas {
 			image-rendering: pixelated;
 			right: 0;
+			top: 0;
+		}
+		svg {
+			left: 0;
 			bottom: 0;
 		}
 	</style>
 </head>
 
 <body>
-	<div></div>
 	<svg viewBox='-50 -50 100 100'>
 		<circle r='40' fill='#123' />
 		<circle r='30' fill='#fff' />
 		<circle r='20' />
 	</svg>
 	<canvas></canvas>
+	<div></div>
 	<script src="src/webgl.js"></script>
 	<script src="src/main.js"></script>
 </body>
