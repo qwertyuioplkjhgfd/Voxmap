@@ -101,6 +101,25 @@ async function main(){
         camera.vel.x = 10 * Math.pow(2*event.offsetX/size - 1, 3)
         camera.vel.y =-10 * Math.pow(2*event.offsetY/size - 1, 3)
     })
+    window.addEventListener('keypress', (event) => {
+        let wishdir = camera.rot.z
+        switch (event.code) {
+            case 'KeyW':
+                wishdir += Math.PI/2
+                break;
+            case 'KeyA':
+                wishdir += Math.PI
+                break;
+            case 'KeyS':
+                wishdir += 3*Math.PI/2
+                break;
+            case 'KeyD':
+                break;
+        }
+
+        camera.vel.x += 10 * Math.cos(wishdir)
+        camera.vel.y += 10 * Math.sin(wishdir)
+    })
     setInterval(()=>{
         let target = 30
         upSample *= target/fps
