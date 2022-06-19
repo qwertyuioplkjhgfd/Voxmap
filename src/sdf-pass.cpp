@@ -23,7 +23,6 @@ int hash(int a, int b){
 	return (a + b)*(a + b + 1) + b*2;
 }
 int hash(int a, int b, int c, int d){
-	return 0;
 	return hash(hash(hash(hash(a,b),c),d),KEY) % 255;
 }
 
@@ -129,6 +128,15 @@ int main()
 	}
 
 	pnm::write("maps/texture.ppm", img, pnm::format::binary);
+	pnm::image<pnm::rgb_pixel> dec = pnm::read("maps/texture.ppm");
+
+	FOR_XYZ {
+		// bad encryption
+		dec[Y*z + y][x].red = img[Y*z+y][x].red ^ hash(z,y,x,0);
+		dec[Y*z + y][x].green = img[Y*z+y][x].green ^ hash(z,y,x,1);
+		dec[Y*z + y][x].blue = img[Y*z+y][x].blue ^ hash(z,y,x,2);
+	}
+	pnm::write("maps/decrypt.ppm", dec, pnm::format::binary);
 	return 0;
 }
 

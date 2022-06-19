@@ -213,12 +213,17 @@ function render(now) {
         `translate(${rev(camera.vel.x)}vmin, ${-rev(camera.vel.y)}vmin)`
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     debug.innerText = camera.vel.y.toPrecision(3) + 'm/s'
     + upSample.toPrecision(3) + ' x, ' 
     + fps.toPrecision(3) + ' fps' 
 =======
     const num = x => x.toPrecision(3)
     const yrd = x => num(x/2)
+=======
+    const num = x => x.toFixed(1)
+    const ft = x => num(x*3)
+>>>>>>> 08291db... Implement trashy TAA
 
     debug.innerText = `${num(fps)} fps, ${num(upSample)} upscaling
         position (m): ${yrd(camera.pos.x)}, ${yrd(camera.pos.y)}, ${yrd(camera.pos.z)}

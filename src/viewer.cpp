@@ -11,8 +11,14 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 
 // settings
+<<<<<<< HEAD
 const unsigned int SCR_WIDTH = 320;
 const unsigned int SCR_HEIGHT = 180;
+=======
+const unsigned int SCR_WIDTH = 480;
+const unsigned int SCR_HEIGHT = 270;
+const int TAA = 2;
+>>>>>>> 08291db... Implement trashy TAA
 
 int main() {
   // glfw: initialize and configure
@@ -79,6 +85,7 @@ int main() {
 
   // load and create a texture
   // -------------------------
+<<<<<<< HEAD
   unsigned int texture1;
   stbi_set_flip_vertically_on_load(
       true); // tell stb_image.h to flip loaded texture's on the y-axis.
@@ -108,10 +115,73 @@ int main() {
   glBindVertexArray(VAO);
   ourShader.use();
   glClear(GL_COLOR_BUFFER_BIT);
+=======
+  unsigned int mapTexture;
+  int width, height, nrChannels;
+  // tell stb_image.h to flip loaded texture's on the y-axis.
+  stbi_set_flip_vertically_on_load(true);
+  glGenTextures(1, &mapTexture);
+  glBindTexture(GL_TEXTURE_2D, mapTexture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  unsigned char *data = stbi_load("maps/texture.png", &width, &height, &nrChannels, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8UI, width, height, 0, GL_RGB_INTEGER, GL_UNSIGNED_BYTE, data);
+  stbi_image_free(data);
+
+  // shader configuration
+  // --------------------
+  marchShader.use();
+  marchShader.setVec2("iResolution", SCR_WIDTH/TAA, SCR_HEIGHT/TAA);
+  marchShader.setInt("mapTexture", 0);
+
+  filterShader.use();
+  filterShader.setInt("marchTexture0", 0);
+  filterShader.setInt("marchTexture1", 1);
+  filterShader.setInt("marchTexture2", 2);
+  filterShader.setInt("marchTexture3", 3);
+
+  // framebuffer configuration
+  // -------------------------
+  unsigned int frameBuffer[TAA*TAA];
+  unsigned int frameTexture[TAA*TAA];
+  GLenum textureEnum[TAA*TAA] = { 
+    GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3 
+  };
+  for(int i = 0; i < TAA*TAA; i++) {
+    unsigned int buffer;
+    glGenFramebuffers(1, &buffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, buffer);
+    // create a color attachment texture
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+    // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+      std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    frameBuffer[i] = buffer;
+    frameTexture[i] = texture;
+  }
+
+  // draw as wireframe
+  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+
+>>>>>>> 08291db... Implement trashy TAA
   // render loop
   // -----------
+  float deltaTime = 0.0f;
+  float lastFrame = 0.0f;
+  float t = glfwGetTime();
+  unsigned int frame = 0;
+  unsigned int frameBufferIndex = 0;
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
+<<<<<<< HEAD
 
     // render container
     float t = glfwGetTime() / 3;
@@ -122,17 +192,22 @@ int main() {
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 =======
+=======
+    t = glfwGetTime();
+    frame++;
+    frameBufferIndex = frame % (TAA*TAA);
+>>>>>>> 08291db... Implement trashy TAA
     // uniforms!
 
     // render
     // ------
     // bind to framebuffer and draw scene as we normally would to color texture
-    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer[frameBufferIndex]);
     marchShader.use();
     marchShader.setVec2("iResolution", SCR_WIDTH, SCR_HEIGHT);
     marchShader.setFloat("iTime", t);
-    marchShader.setVec3("camRot", 0, 0, t);
-    marchShader.setVec3("camPos", t - 100, t, 6);
+    marchShader.setVec3("iCamRot", 0, 0, t/10.);
+    marchShader.setVec3("iCamPos", -200, 0, 3.5);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, mapTexture);
     glBindVertexArray(quadVertexArray);
@@ -141,13 +216,15 @@ int main() {
     // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     filterShader.use();
-    filterShader.setVec2("iResolution", SCR_WIDTH, SCR_HEIGHT);
-    filterShader.setFloat("iTime", t);
-    filterShader.setVec3("camRot", 0, 0, t);
-    filterShader.setVec3("camPos", t - 100, t, 6);
+    filterShader.setInt("iFrame", frame);
+    filterShader.setInt("iTAA", TAA);
 
     glBindVertexArray(quadVertexArray);
-    glBindTexture(GL_TEXTURE_2D, frameTexture);   // use the color attachment texture as the texture of the quad plane
+    // use the color attachment texture as the texture of the quad plane
+    for(int i = 0; i < TAA*TAA; i++){
+      glActiveTexture(textureEnum[i]);
+      glBindTexture(GL_TEXTURE_2D, frameTexture[i]);
+    }
     glDrawArrays(GL_TRIANGLES, 0, 6);
 >>>>>>> 0e15432... Fix camera rotation
 
