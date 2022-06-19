@@ -175,7 +175,12 @@ async function main(){
     setInterval(()=>{
         let target = 30
         upSample *= target/fps
+<<<<<<< HEAD
         upSample = Math.max(1, Math.min(upSample,16))
+=======
+        upSample = Math.max(1., Math.min(upSample,16))
+        upSample = Math.round(upSample * 2)/2
+>>>>>>> 87af3ad... Remove 1-pixel-wide unshaded bug; Noise texture
         resize()
     },1000)
 
