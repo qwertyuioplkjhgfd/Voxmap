@@ -112,7 +112,7 @@ async function main() {
         ["encrypt", "decrypt"]
     )
     url.searchParams.set("password","")
-    window.history.replaceState(null, "", url.toString())
+    //window.history.replaceState(null, "", url.toString())
 
     const texture_decrypted = await crypto.subtle.decrypt({
         'name': 'AES-CBC',
