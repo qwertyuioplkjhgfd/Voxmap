@@ -177,6 +177,7 @@ async function main(){
         upSample *= target/fps
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         upSample = Math.max(1, Math.min(upSample,16))
 =======
         upSample = Math.max(1., Math.min(upSample,16))
@@ -185,6 +186,11 @@ async function main(){
 >>>>>>> c71d9f7... Display sun directly
         upSample = Math.round(upSample * 2)/2
 >>>>>>> 87af3ad... Remove 1-pixel-wide unshaded bug; Noise texture
+=======
+        upSample = Math.max(1, Math.min(upSample, 16))
+        upSample = Math.round(upSample)
+        upSample = 1
+>>>>>>> 7621971... Multiple bounces for no reason
         resize()
     },1000)
 
