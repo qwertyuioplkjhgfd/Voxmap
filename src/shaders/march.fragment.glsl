@@ -46,8 +46,8 @@ int sdf(ivec3 c) {
 }
 
 vec3 color(ivec3 c) {
-  int p = tex(c).g - 2;
-  vec3 base = p<=0?vec3(0):p<=17?vec3(0.71484,0.71484,0.71484):p<=97?vec3(0.523438,0.648438,0.589844):p<=103?vec3(0.132812,0.488281,0.316406):p<=225?vec3(0.843137,0.10196,0.12549):p<=255?vec3(0.996094,0.996094,0.996094):vec3(1);
+  int p = tex(c).g;
+  vec3 base = p<=0?vec3(0):p<=24?vec3(0.71484,0.71484,0.71484):p<=97?vec3(0.523438,0.648438,0.589844):p<=103?vec3(0.132812,0.488281,0.316406):p<=225?vec3(0.843137,0.10196,0.12549):p<=255?vec3(0.996094,0.996094,0.996094):vec3(1);
   base *= 1. - vec3(hash(c.x, c.y, c.z) % 255)/255./64.;
   return base;
 }
@@ -106,7 +106,7 @@ March march( vec3 rayPos, vec3 rayDir, int MAX_STEPS ) {
       break;
     }
 
-    dist = (sdf(res.cellPos) + 9) / 16;
+    dist = (sdf(res.cellPos) + 7) / 8;
     res.minDist = min(float(dist), res.minDist);
 
     res.step++;

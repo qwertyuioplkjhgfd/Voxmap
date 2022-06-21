@@ -20,7 +20,7 @@ maps/old.map.ora: maps/map.svg
 	cd maps/ora && zip -r map.ora * && cd ..
 	mv maps/ora/map.ora maps/out.map.ora
 
-maps/map.ora: maps/old.map.ora
+maps/map.ora:
 	### (MANUAL STEP) clean up data in Krita
 
 maps/map.pgm: maps/map.ora
