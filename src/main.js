@@ -92,6 +92,7 @@ main()
 const url = new URL(window.location)
 
 async function main() {
+    /*
     const crypto_initial = Uint8Array.from([
         55, 44, 146, 89,
         30, 93, 68, 30,
@@ -118,10 +119,12 @@ async function main() {
         'name': 'AES-CBC',
         'iv': crypto_initial
     }, crypto_key, await texture_blob.arrayBuffer())
+    */
    const texture_img = new Image()
-   texture_img.src = URL.createObjectURL(
+   /*texture_img.src = URL.createObjectURL(
        new Blob([ texture_decrypted ], { type: "image/png" })
-   )
+   )*/
+  texture_img.src = "maps/texture.png"
    await texture_img.decode()
    
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
