@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include "../libs/glad/glad.h"
 #include <GLFW/glfw3.h>
@@ -8,17 +9,14 @@
 #include "../libs/stb_image.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+//void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+//void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 // settings
-<<<<<<< HEAD
-const unsigned int SCR_WIDTH = 320;
-const unsigned int SCR_HEIGHT = 180;
-=======
-const unsigned int SCR_WIDTH = 480;
-const unsigned int SCR_HEIGHT = 270;
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 450;
 const int TAA = 2;
->>>>>>> 08291db... Implement trashy TAA
 
 int main() {
   // glfw: initialize and configure
@@ -35,7 +33,7 @@ int main() {
   // glfw window creation
   // --------------------
   GLFWwindow *window =
-      glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "VoxMap", NULL, NULL);
+    glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "VoxMap", NULL, NULL);
   if (window == NULL) {
     std::cout << "Failed to create GLFW window" << std::endl;
     glfwTerminate();
@@ -43,6 +41,11 @@ int main() {
   }
   glfwMakeContextCurrent(window);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  //glfwSetCursorPosCallback(window, mouse_callback);
+  //glfwSetScrollCallback(window, scroll_callback);
+
+  // tell GLFW to capture our mouse
+  //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   // glad: load all OpenGL function pointers
   // ---------------------------------------
@@ -53,69 +56,31 @@ int main() {
 
   // build and compile our shader zprogram
   // ------------------------------------
-  Shader ourShader("src/shader.vs", "src/shader.fs");
+  Shader marchShader("src/shaders/march.vertex.glsl", "src/shaders/march.fragment.glsl");
+  Shader filterShader("src/shaders/filter.vertex.glsl", "src/shaders/filter.fragment.glsl");
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
-  float vertices[] = {// positions
-                      1.0f,  1.0f,  0.0f, 1.0f,  -1.0f, 0.0f,
-                      -1.0f, -1.0f, 0.0f, -1.0f, 1.0f,  0.0f};
-  unsigned int indices[] = {
-      0, 1, 3, // first triangle
-      1, 2, 3  // second triangle
+  float quadVertices[] = {// 2 triangles' vertex positions
+    -1., +1.,
+    -1., -1.,
+    +1., -1.,
+
+    -1., +1.,
+    +1., -1.,
+    +1., +1.
   };
-  unsigned int VBO, VAO, EBO;
-  glGenVertexArrays(1, &VAO);
-  glGenBuffers(1, &VBO);
-  glGenBuffers(1, &EBO);
-
-  glBindVertexArray(VAO);
-
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
-               GL_STATIC_DRAW);
-
-  // position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+  unsigned int quadVertexArray, quadVertexBuffer;
+  glGenVertexArrays(1, &quadVertexArray);
+  glGenBuffers(1, &quadVertexBuffer);
+  glBindVertexArray(quadVertexArray);
+  glBindBuffer(GL_ARRAY_BUFFER, quadVertexBuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void *)0);
   glEnableVertexAttribArray(0);
-  int width, height, nrChannels;
 
   // load and create a texture
   // -------------------------
-<<<<<<< HEAD
-  unsigned int texture1;
-  stbi_set_flip_vertically_on_load(
-      true); // tell stb_image.h to flip loaded texture's on the y-axis.
-  // texture 1
-  // ---------
-  glGenTextures(1, &texture1);
-  glBindTexture(GL_TEXTURE_2D, texture1);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  unsigned char *data =
-      stbi_load("maps/texture.png", &width, &height, &nrChannels, 0);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-               GL_UNSIGNED_BYTE, data);
-  stbi_image_free(data);
-
-  // tell opengl for each sampler to which texture unit it belongs to (only has
-  // to be done once)
-  // -------------------------------------------------------------------------------------------
-  ourShader.use(); // don't forget to activate/use the shader before setting
-                   // uniforms!
-  ourShader.setInt("texture1", 0);
-  ourShader.setVec2("iResolution", SCR_WIDTH, SCR_HEIGHT);
-
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture1);
-  glBindVertexArray(VAO);
-  ourShader.use();
-  glClear(GL_COLOR_BUFFER_BIT);
-=======
   unsigned int mapTexture;
   int width, height, nrChannels;
   // tell stb_image.h to flip loaded texture's on the y-axis.
@@ -135,17 +100,18 @@ int main() {
   marchShader.setInt("mapTexture", 0);
 
   filterShader.use();
-  filterShader.setInt("marchTexture0", 0);
-  filterShader.setInt("marchTexture1", 1);
-  filterShader.setInt("marchTexture2", 2);
-  filterShader.setInt("marchTexture3", 3);
+  for(int i = 0; i < TAA*TAA; i++) {
+    filterShader.setInt("marchTexture" + std::to_string(i), i);
+  }
 
   // framebuffer configuration
   // -------------------------
   unsigned int frameBuffer[TAA*TAA];
   unsigned int frameTexture[TAA*TAA];
-  GLenum textureEnum[TAA*TAA] = { 
-    GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3 
+  GLenum textureEnum[10] = { 
+    GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3,
+    GL_TEXTURE4, GL_TEXTURE5, GL_TEXTURE6, GL_TEXTURE3,
+    GL_TEXTURE8, GL_TEXTURE9
   };
   for(int i = 0; i < TAA*TAA; i++) {
     unsigned int buffer;
@@ -171,7 +137,6 @@ int main() {
   //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 
->>>>>>> 08291db... Implement trashy TAA
   // render loop
   // -----------
   float deltaTime = 0.0f;
@@ -180,23 +145,13 @@ int main() {
   unsigned int frame = 0;
   unsigned int frameBufferIndex = 0;
   while (!glfwWindowShouldClose(window)) {
+
+    // input
+    // -----
     processInput(window);
-<<<<<<< HEAD
-
-    // render container
-    float t = glfwGetTime() / 3;
-<<<<<<< HEAD
-    ourShader.setFloat("iTime", t);
-    ourShader.setVec3("camRot", t, t, t);
-    ourShader.setVec3("camPos", t - 100, t, t + 6);
-
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-=======
-=======
     t = glfwGetTime();
     frame++;
     frameBufferIndex = frame % (TAA*TAA);
->>>>>>> 08291db... Implement trashy TAA
     // uniforms!
 
     // render
@@ -226,7 +181,6 @@ int main() {
       glBindTexture(GL_TEXTURE_2D, frameTexture[i]);
     }
     glDrawArrays(GL_TRIANGLES, 0, 6);
->>>>>>> 0e15432... Fix camera rotation
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved
     // etc.)
@@ -237,9 +191,8 @@ int main() {
 
   // optional: de-allocate all resources once they've outlived their purpose:
   // ------------------------------------------------------------------------
-  glDeleteVertexArrays(1, &VAO);
-  glDeleteBuffers(1, &VBO);
-  glDeleteBuffers(1, &EBO);
+  glDeleteVertexArrays(1, &quadVertexArray);
+  glDeleteBuffers(1, &quadVertexBuffer);
 
   // glfw: terminate, clearing all previously allocated GLFW resources.
   // ------------------------------------------------------------------
