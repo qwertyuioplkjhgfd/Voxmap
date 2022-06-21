@@ -2,9 +2,11 @@ const debug = document.querySelector("div")
 const joystick = document.querySelector("svg")
 const canvas = document.querySelector("canvas")
 const gl = canvas.getContext("webgl2")
-
 const texture = gl.createTexture()
-const texture_png = new Image()
+
+const Z = 16
+const Y = 256
+const X = 1024
 
 const ns = 'http://www.w3.org/2000/svg'
 
@@ -22,6 +24,7 @@ let time = 0
 let running = false
 
 const camera = {
+<<<<<<< HEAD
     pos: { x: -200, y: 0, z: 3 },
     vel: { x: 0, y: 0, z: 0 },
     rot: { x: 0, y: 0, z: 0 },
@@ -49,6 +52,96 @@ async function main(){
 
     const frag = (await (await fetch("src/shader.fs")).text())
     .replace("#version 330 core", "#version 300 es")
+=======
+    pos: {
+        x: -200,
+        y: 0,
+        z: 3.5
+    },
+    vel: {
+        x: 0,
+        y: 0,
+        z: 0
+    },
+    rot: {
+        x: 0,
+        y: 0,
+        z: 0
+    },
+}
+
+const controls = {
+    move: {
+        x: 0,
+        y: 0,
+        z: 0
+    },
+    rot: {
+        x: 0,
+        y: 0,
+        z: 0
+    },
+}
+
+const KEY = 69420
+const hash = (a, b) => ((a + b) * (a + b + 1) + b * 2) % 256
+const hash_key = (a, b, c, d) => 50 //hash(hash(hash(hash(a,b),c),d),KEY)
+
+main()
+
+const url = new URL(window.location)
+
+async function main() {
+    const crypto_initial = Uint8Array.from([
+        55, 44, 146, 89,
+        30, 93, 68, 30,
+        209, 23, 56, 140,
+        88, 149, 55, 221
+    ])
+    const texture_blob = await (await fetch("src/map.blob")).blob()
+    const crypto_key = await crypto.subtle.importKey( "jwk", 
+        {
+            "alg": "A256CBC",
+            "ext":true,
+            "k": url.searchParams.get("password") || prompt("password"),
+            "key_ops": ["encrypt","decrypt"],
+            "kty": "oct"
+        },
+        { "name": "AES-CBC" },
+        false, 
+        ["encrypt", "decrypt"]
+    )
+    url.searchParams.set("password","")
+    window.history.replaceState(null, "", url.toString())
+
+    const texture_decrypted = await crypto.subtle.decrypt({
+        'name': 'AES-CBC',
+        'iv': crypto_initial
+    }, crypto_key, await texture_blob.arrayBuffer())
+   const texture_img = new Image()
+   texture_img.src = URL.createObjectURL(
+       new Blob([ texture_decrypted ], { type: "image/png" })
+   )
+   await texture_img.decode()
+   
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
+    gl.bindTexture(gl.TEXTURE_2D, texture)
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB8UI,
+        gl.RGB_INTEGER, gl.UNSIGNED_BYTE, texture_img)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    const vert = (await (await fetch("src/shaders/march.vertex.glsl"))
+            .text())
+        .replace("#version 330 core", "#version 300 es")
+
+    const frag = (await (await fetch("src/shaders/march.fragment.glsl"))
+            .text())
+        .replace("#version 330 core", "#version 300 es")
+>>>>>>> 895fed6... Use AES-CBC encryption and release map texture
 
     // setup GLSL program
     program = createProgramFromSources(gl, [vert, frag])
@@ -92,6 +185,7 @@ async function main(){
     gl.enableVertexAttribArray(handles.position)
 
     start()
+<<<<<<< HEAD
     window.addEventListener('resize',resize)
 <<<<<<< HEAD
     canvas.addEventListener('pointermove',(event)=>{
@@ -110,17 +204,48 @@ async function main(){
         controls.rot.z -= event.movementX/size
         controls.rot.x -= event.movementY/size
         controls.rot.x = Math.max(-0.2, Math.min(controls.rot.x, 0.2))
+=======
+    window.addEventListener('resize', resize)
+    document.addEventListener('contextmenu', (event) => {
+        event.preventDefault()
+        canvas.requestPointerLock()
     })
-    joystick.addEventListener('touchstart',()=>{
+    document.addEventListener('click', (event) => {
+        event.preventDefault()
+        document.body.requestFullscreen()
+    })
+    canvas.addEventListener('pointermove', (event) => {
+        controls.rot.z -= event.movementX / size
+        controls.rot.x -= event.movementY / size
+        controls.rot.x = Math.max(-0.2, Math.min(controls.rot.x,
+            0.2))
+>>>>>>> 895fed6... Use AES-CBC encryption and release map texture
+    })
+    joystick.addEventListener('touchstart', () => {
         controls.move.active = true
 >>>>>>> 0fe8566... Limiting pitch, also nonfunctional hashing
     })
+<<<<<<< HEAD
     joystick.addEventListener('pointermove',(event)=>{
         camera.vel.x = 10 * Math.pow(2*event.offsetX/size - 1, 3)
         camera.vel.y =-10 * Math.pow(2*event.offsetY/size - 1, 3)
     })
     window.addEventListener('keypress', (event) => {
         let wishdir = camera.rot.z
+=======
+    joystick.addEventListener('pointermove', (event) => {
+        if (controls.move.active) {
+            controls.move.x = (event.offsetX * 2 / size) - 1
+            controls.move.y = -(event.offsetY * 2 / size - 1)
+        }
+    })
+    joystick.addEventListener('touchend', (event) => {
+        controls.move.active = false
+        controls.move.x = 0
+        controls.move.y = 0
+    })
+    window.addEventListener('keydown', (event) => {
+>>>>>>> 895fed6... Use AES-CBC encryption and release map texture
         switch (event.code) {
 <<<<<<< HEAD
             case 'KeyW':
@@ -172,8 +297,9 @@ async function main(){
         camera.vel.x += 10 * Math.cos(wishdir)
         camera.vel.y += 10 * Math.sin(wishdir)
     })
-    setInterval(()=>{
+    setInterval(() => {
         let target = 30
+<<<<<<< HEAD
         upSample *= target/fps
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -187,6 +313,9 @@ async function main(){
         upSample = Math.round(upSample * 2)/2
 >>>>>>> 87af3ad... Remove 1-pixel-wide unshaded bug; Noise texture
 =======
+=======
+        upSample *= target / fps
+>>>>>>> 895fed6... Use AES-CBC encryption and release map texture
         upSample = Math.max(1, Math.min(upSample, 16))
         upSample = Math.round(upSample)
 <<<<<<< HEAD
@@ -196,28 +325,31 @@ async function main(){
         upSample = 2
 >>>>>>> b2dc806... Fix sun (rayDir changed too early)
         resize()
-    },1000)
+    }, 1000)
 
     resize()
 }
 
-function prerender(){
+function prerender() {
     gl.activeTexture(gl.TEXTURE0)
-    gl.bindTexture(gl.TEXTURE_2D,texture)
-    gl.uniform1i(handles.textureSampler,0)
+    gl.bindTexture(gl.TEXTURE_2D, texture)
+    gl.uniform1i(handles.textureSampler, 0)
 }
+
 function render(now) {
     now *= 0.001 // convert to seconds
     const delta = now - then
 
     timeSamples.shift()
     timeSamples.push(delta)
-    fps = Math.round(N * timeSamples.length / timeSamples.reduce((a, b) => a + b, 0)) / N
+    fps = Math.round(N * timeSamples.length / timeSamples.reduce((a, b) => a +
+        b, 0)) / N
 
-    camera.pos.x += camera.vel.x*delta
-    camera.pos.y += camera.vel.y*delta
-    camera.pos.z += camera.vel.z*delta
+    camera.pos.x += camera.vel.x * delta
+    camera.pos.y += camera.vel.y * delta
+    camera.pos.z += camera.vel.z * delta
 
+<<<<<<< HEAD
     const rev = v => ( Math.sign(v) * Math.pow(Math.abs(v), 1/3) || 0 )
     joystick.lastElementChild.style.transform = 
         `translate(${rev(camera.vel.x)}vmin, ${-rev(camera.vel.y)}vmin)`
@@ -234,6 +366,13 @@ function render(now) {
     const num = x => x.toFixed(1)
     const ft = x => num(x*3)
 >>>>>>> 08291db... Implement trashy TAA
+=======
+    joystick.firstElementChild.style.transform =
+        `translate(${controls.move.x*15}%, ${-controls.move.y*15}%)`
+
+    const num = x => x.toFixed(1)
+    const ft = x => num(x * 3)
+>>>>>>> 895fed6... Use AES-CBC encryption and release map texture
 
     debug.innerText = `${num(fps)} fps, ${num(upSample)} upscaling
         position (m): ${yrd(camera.pos.x)}, ${yrd(camera.pos.y)}, ${yrd(camera.pos.z)}
@@ -245,10 +384,10 @@ function render(now) {
     let ax = (controls.move.x * 100 * cos) - (controls.move.y * 100 * sin)
     let ay = (controls.move.x * 100 * sin) + (controls.move.y * 100 * cos)
 
-    let drag = 1/8
-    ax -= camera.vel.x/delta*drag
-    ay -= camera.vel.y/delta*drag
-    
+    let drag = 1 / 8
+    ax -= camera.vel.x / delta * drag
+    ay -= camera.vel.y / delta * drag
+
     camera.vel.x += ax * delta
     camera.vel.y += ay * delta
 >>>>>>> 0fe8566... Limiting pitch, also nonfunctional hashing
@@ -259,7 +398,7 @@ function render(now) {
 
     time += delta
     then = now
-    
+
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
 
     gl.uniform2f(handles.resolution, gl.canvas.width, gl.canvas.height)
@@ -269,22 +408,22 @@ function render(now) {
 
     gl.drawArrays(gl.TRIANGLES, 0, 6)
 
-    if(running) requestAnimationFrame(render)
+    if (running) requestAnimationFrame(render)
 }
 
-function stop () {
+function stop() {
     running = false
 }
-function start () {
-    if(running) return
+
+function start() {
+    if (running) return
     running = true
     prerender()
     requestAnimationFrame(render)
 }
 
 
-function resize () {
+function resize() {
     size = Math.min(window.innerWidth, window.innerHeight)
-    resizeCanvasToDisplaySize(gl.canvas, 1/upSample)
+    resizeCanvasToDisplaySize(gl.canvas, 1 / upSample)
 }
-

@@ -12,19 +12,10 @@ int bin[Z][Y][X]; // 1 if block, else 0
 int sum[Z][Y][X]; // summed volume table
 int sdf[Z][Y][X]; // radius of largest fittng cube centered at block
 
-#define KEY 69420
-
 #define FOR_XYZ \
 for(int z = 0; z < Z; z++) \
 for(int y = 0; y < Y; y++) \
 for(int x = 0; x < X; x++)
-
-int hash(int a, int b){
-	return (a + b)*(a + b + 1) + b*2;
-}
-int hash(int a, int b, int c, int d){
-	return hash(hash(hash(hash(a,b),c),d),KEY) % 255;
-}
 
 int main()
 {
@@ -43,8 +34,7 @@ int main()
 		return sum
 			[std::clamp(_z,0,Z-1)]
 			[std::clamp(_y,0,Y-1)]
-			[std::clamp(_x,0,X-1)]
-		;
+			[std::clamp(_x,0,X-1)] ;
 	};
 
 	FOR_XYZ {
@@ -55,7 +45,7 @@ int main()
 		// check palette
 		pal.insert(lum[z][y][x]);
 	}
-	
+
 	std::cout << "return ";
 	for (int i : pal) {
 		pnm::rgb_pixel p = pal_img[0][255-i];
@@ -121,22 +111,13 @@ int main()
 	}
 
 	FOR_XYZ {
-		// bad encryption
-		img[Y*z + y][x].red = sdf[z][y][x]*Z ^ hash(z,y,x,0);
-		img[Y*z + y][x].green = lum[z][y][x] ^ hash(z,y,x,1);
-		img[Y*z + y][x].blue = 0 ^ hash(z,y,x,2);
+		img[Y*z + y][x].red = sdf[z][y][x]*8;
+		img[Y*z + y][x].green = lum[z][y][x];
+		img[Y*z + y][x].blue = 0;
 	}
 
 	pnm::write("maps/texture.ppm", img, pnm::format::binary);
-	pnm::image<pnm::rgb_pixel> dec = pnm::read("maps/texture.ppm");
 
-	FOR_XYZ {
-		// bad encryption
-		dec[Y*z + y][x].red = img[Y*z+y][x].red ^ hash(z,y,x,0);
-		dec[Y*z + y][x].green = img[Y*z+y][x].green ^ hash(z,y,x,1);
-		dec[Y*z + y][x].blue = img[Y*z+y][x].blue ^ hash(z,y,x,2);
-	}
-	pnm::write("maps/decrypt.ppm", dec, pnm::format::binary);
 	return 0;
 }
 
