@@ -189,8 +189,12 @@ async function main(){
 =======
         upSample = Math.max(1, Math.min(upSample, 16))
         upSample = Math.round(upSample)
+<<<<<<< HEAD
         upSample = 1
 >>>>>>> 7621971... Multiple bounces for no reason
+=======
+        upSample = 2
+>>>>>>> b2dc806... Fix sun (rayDir changed too early)
         resize()
     },1000)
 
