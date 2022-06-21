@@ -42,7 +42,7 @@ ivec3 tex(ivec3 c) {
   return ivec3(texelFetch(mapTexture, ivec2(c.x, c.y + Y*c.z), 0));
 }
 int sdf(ivec3 c) {
-  return tex(c).r;
+  return tex(c).r + max(0, c.z - Z)*8;
 }
 
 vec3 color(ivec3 c) {

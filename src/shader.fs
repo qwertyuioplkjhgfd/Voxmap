@@ -21,20 +21,26 @@ const float Zf = 16.0;
 const int MAX_RAY_STEPS = 128;
 const int MAX_SUN_STEPS = 5;
 
-ivec2 offset(ivec3 c) {
+ivec3 clampedPos(ivec3 c)
+{
   //center stuff and project down to 2D
-  return ivec2(
-    clamp(c.x + X/2, 0, X-1),
-    clamp(c.y + Y/2, 0, Y-1) + Y * clamp(c.z, 0, Z-1)
+  return ivec3(
+    clamp(c.x, 0, X-1),
+    clamp(c.y, 0, Y-1),
+    clamp(c.z, 0, Z-1)
   );
+}
+ivec2 projectedPos(ivec3 c) {
+  return ivec2(c.x, c.y + Y*c.z);
 }
 
 int sdf(ivec3 c) {
-  return int(Zf * texelFetch(texture1, offset(c), 0).r);
+  int clampedDist = int(Zf * texelFetch(texture1, projectedPos(clampedPos(c)), 0).r);
+  return clampedDist + max(ivec3(0), c - clampedPos(c));
 }
 
 vec3 color(ivec3 c) {
-  return texelFetch(texture1, offset(c) + ivec2(X,0), 0).rgb;
+  return texelFetch(texture1, projectedPos(clampedPos(c)), 0).rgb;
 }
 
 vec2 rotate2d(vec2 v, float a) {
