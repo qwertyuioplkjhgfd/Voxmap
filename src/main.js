@@ -261,8 +261,8 @@ function render(now) {
 
     let sin = Math.sin(camera.rot.z)
     let cos = Math.cos(camera.rot.z)
-    let ax = (controls.move.x * 100 * cos) - (controls.move.y * 100 * sin)
-    let ay = (controls.move.x * 100 * sin) + (controls.move.y * 100 * cos)
+    let ax = 169 * Math.pow(controls.move.x * cos - controls.move.y * sin, 3)
+    let ay = 169 * Math.pow(controls.move.x * sin + controls.move.y * cos, 3)
 
     let drag = 1 / 8
     ax -= camera.vel.x / delta * drag
