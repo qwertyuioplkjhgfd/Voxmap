@@ -196,7 +196,7 @@ void main() { // Marching setup
 
     vec3 skyCol = vec3(1.0, 0.6, 0.05)*sun + atmCol;
 
-    vec3 ambCol = vec3(1);//mix(vec3(1), vec3(0.1, 0.2, 0.4), sdf(res.rayPos)/16.);
+    vec3 ambCol = mix(scatterCol, spaceCol, rayDir.z*0.5 + 0.5);
 
     // Bounce
     camPos = res.rayPos + res.normal * 1e-3;
@@ -207,12 +207,11 @@ void main() { // Marching setup
       March sun = march(camPos, sunDir, MAX_SUN_STEPS);
       shadeFactor *= clamp(sun.minDist, 0., 1.);
     }
-    vec3 shadeCol = mix(atmCol, sunCol, shadeFactor);
+    vec3 shadeCol = mix(ambCol, sunCol, shadeFactor);
 
     vec3 objCol = baseCol
       * normalCol
       * heightCol
-      * ambCol
       * shadeCol
       * 1.0;
 
