@@ -12,9 +12,9 @@ const X = 1024
 let program
 let handles
 
-const N = 30
+const N = 100
 let size = 100
-let timeSamples = Array(30).fill(0)
+let timeSamples = Array(N).fill(0)
 let upSample = 1
 let fps = 1
 let then = 0
@@ -224,7 +224,7 @@ async function main() {
         upSample = Math.max(1, Math.min(upSample, 16))
         upSample = Math.round(upSample*2)/2
         resize()
-    }, 10000)
+    }, 2000)
 
     resize()
 }
