@@ -222,10 +222,9 @@ async function main() {
         let target = 30
         upSample *= target / fps
         upSample = Math.max(1, Math.min(upSample, 16))
-        upSample = Math.round(upSample)
-        upSample = 2
+        upSample = Math.round(upSample*2)/2
         resize()
-    }, 1000)
+    }, 10000)
 
     resize()
 }
