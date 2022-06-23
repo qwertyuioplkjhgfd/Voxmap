@@ -23,7 +23,7 @@ let running = false
 
 let debug_emx;
 let debug_emy;
-let debug_count;
+let debug_count = 0;
 
 const camera = {
     pos: {
