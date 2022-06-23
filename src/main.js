@@ -254,10 +254,11 @@ function render(now) {
     const num = x => x.toFixed(1)
     const ft = x => num(x * 3)
 
-    debug.innerText = `${num(fps)} fps, ${num(upSample)} upscaling
+    debug.innerText = `debug 3
+        ${num(fps)} fps, ${num(upSample)} upscaling
         position (ft): ${ft(camera.pos.x)}, ${ft(camera.pos.y)}, ${ft(camera.pos.z)}
         velocity (ft/s): ${ft(camera.vel.x)}, ${ft(camera.vel.y)}, ${ft(camera.vel.z)}
-        controls: ${controls.move.x}, ${controls.move.y}
+        controls: ${controls.move.x}, ${controls.move.y}, rot: ${controls.rot.x}, ${controls.rot.y}
     `
 
     let Fx = Math.pow(controls.move.x, 3)
