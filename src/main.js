@@ -259,10 +259,12 @@ function render(now) {
         velocity (ft/s): ${ft(camera.vel.x)}, ${ft(camera.vel.y)}, ${ft(camera.vel.z)}
     `
 
+    let Fx = Math.pow(controls.move.x, 3)
+    let Fy = Math.pow(controls.move.y, 3)
     let sin = Math.sin(camera.rot.z)
     let cos = Math.cos(camera.rot.z)
-    let ax = 169 * Math.pow(controls.move.x * cos - controls.move.y * sin, 3)
-    let ay = 169 * Math.pow(controls.move.x * sin + controls.move.y * cos, 3)
+    let ax = 169 * (Fx * cos - Fy * sin)
+    let ay = 169 * (Fx * sin + Fy * cos)
 
     let drag = 1 / 8
     ax -= camera.vel.x / delta * drag
