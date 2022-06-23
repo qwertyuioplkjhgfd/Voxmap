@@ -237,7 +237,7 @@ function prerender() {
 
 function render(now) {
     now *= 0.001 // convert to seconds
-    const delta = now - then
+    const delta = 0.01
 
     timeSamples.shift()
     timeSamples.push(delta)
