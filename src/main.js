@@ -266,6 +266,7 @@ function render(now) {
     let ax = 169 * (Fx * cos - Fy * sin)
     let ay = 169 * (Fx * sin + Fy * cos)
 
+    
     let drag = 1 / 8
     ax -= camera.vel.x / delta * drag
     ay -= camera.vel.y / delta * drag
