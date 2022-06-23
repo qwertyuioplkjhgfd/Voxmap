@@ -1,30 +1,24 @@
+#include "voxmap.h"
 #include "../libs/pnm.hpp"
 #include <iostream>
 #include <cassert>
 #include <set>
 
-const int X = 1024;
-const int Y = 256;
-const int Z = 16;
+const int GAP = 8;
+const int MAX = 255/GAP;
 
-int lum[Z][Y][X]; // color
+pnm::rgb_pixel col[Z][Y][X]; // color
+pnm::rgb_pixel pal[MAX]; // palette
+std::set <pnm::rgb_pixel> pal_set; // palette set
 int bin[Z][Y][X]; // 1 if block, else 0
 int sum[Z][Y][X]; // summed volume table
 int sdf[Z][Y][X]; // radius of largest fittng cube centered at block
-
-#define FOR_XYZ \
-for(int z = 0; z < Z; z++) \
-for(int y = 0; y < Y; y++) \
-for(int x = 0; x < X; x++)
 
 int main()
 {
 	using namespace pnm::literals;
 
 	pnm::image<pnm::rgb_pixel> img = pnm::read("maps/map.ppm");
-
-	std::set<int> pal;
-	pnm::image<pnm::rgb_pixel> pal_img = pnm::read("src/palette.ppm");
 
 	assert( X == img.width() );
 	assert( Y*Z == img.height() );
@@ -34,28 +28,32 @@ int main()
 		return sum
 			[std::clamp(_z,0,Z-1)]
 			[std::clamp(_y,0,Y-1)]
-			[std::clamp(_x,0,X-1)] ;
+				[std::clamp(_x,0,X-1)] ;
 	};
 
 	FOR_XYZ {
+		pnm::rgb_pixel pixel = img[Y*z + y][x];
+		// add to palette
+		pal_set.insert(pixel);
 		// put image bits into 3D existence table
-		lum[z][y][x] = int(img[Y*z + y][x].red);
-		bin[z][y][x] = lum[z][y][x] ? 1 : 0;
-
-		// check palette
-		pal.insert(lum[z][y][x]);
+		col[z][y][x] = pixel;
+		bin[z][y][x] = (int(pixel.red) + int(pixel.blue) + int(pixel.blue) > 0) ? 1 : 0;
 	}
 
-	std::cout << "return ";
-	for (int i : pal) {
-		pnm::rgb_pixel p = pal_img[0][255-i];
-		std::cout << "p==" << i << "?";
-		std::cout << "vec3(";
-		std::cout << float(p.red)/255.0 << ",";
-		std::cout << float(p.green)/255.0 << ",";
-		std::cout << float(p.blue)/255.0 << "):";
+	{
+		std::cout << "return ";
+		int i = 0;
+		for (pnm::rgb_pixel pixel : pal_set) {
+			std::cout << "p<=" << i*GAP << "?";
+			std::cout << "vec3(";
+			std::cout << float(pixel.red)/255.0 << ",";
+			std::cout << float(pixel.green)/255.0 << ",";
+			std::cout << float(pixel.blue)/255.0 << "):";
+			pal[i] = pixel;
+			i++;
+		}
+		std::cout << "vec3(1);" << std::endl;
 	}
-	std::cout << "vec3(1);" << std::endl;
 
 	FOR_XYZ {
 		// compute a summed volume table
@@ -111,8 +109,12 @@ int main()
 	}
 
 	FOR_XYZ {
-		img[Y*z + y][x].red = sdf[z][y][x]*8;
-		img[Y*z + y][x].green = lum[z][y][x];
+		img[Y*z + y][x].red = sdf[z][y][x] * GAP;
+
+		int col_index = 0;
+		for (; col_index < MAX && pal[col_index] != col[z][y][x]; col_index++) { continue; }
+		img[Y*z + y][x].green = col_index * GAP;
+
 		img[Y*z + y][x].blue = 0;
 	}
 

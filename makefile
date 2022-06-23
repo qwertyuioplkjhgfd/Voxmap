@@ -38,9 +38,9 @@ maps/map.vox: bin/vox maps/map.pgm
 maps/map.png: maps/map.vox
 	### (MANUAL STEP) open in Goxel and export PNG slices
 
-maps/map.pam: maps/map.png
+maps/map.ppm: maps/map.png
 	### PNG slices to PAM
-	convert -threshold 0 maps/map.png maps/map.pam
+	convert maps/map.png -rotate 270 maps/map.ppm
 
 maps/texture.ppm: bin/sdf maps/map.ppm
 	### PBM to SDF
@@ -57,8 +57,15 @@ bin/vox-pass.o: src/vox-pass.cpp
 	clang++ -I libs/MagicaVoxel_File_Writer -Og -g -std=gnu++20 \
 		-o bin/vox-pass.o -c src/vox-pass.cpp
 
+bin/vox-reverse.o: src/vox-reverse.cpp
+	clang++ -I libs/MagicaVoxel_File_Writer -Og -g -std=gnu++20 \
+		-o bin/vox-reverse.o -c src/vox-reverse.cpp
+
 bin/vox: bin/VoxWriter.o bin/vox-pass.o
 	clang++ -I. -g -Og -std=gnu++20 -o bin/vox bin/vox-pass.o bin/VoxWriter.o
+
+bin/vox-reverse: bin/VoxWriter.o bin/vox-reverse.o
+	clang++ -I. -g -Og -std=gnu++20 -o bin/vox-reverse bin/vox-reverse.o bin/VoxWriter.o
 
 bin/sdf: src/sdf-pass.cpp
 	clang++ src/sdf-pass.cpp -g -Og -std=gnu++20 -o bin/sdf

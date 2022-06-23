@@ -39,15 +39,15 @@ ivec3 tex(ivec3 c) {
   c.x = clamp(c.x + X/2, 0, X-1);
   c.y = clamp(c.y + Y/2, 0, Y-1);
   c.z = clamp(c.z, 0, Z-1);
-  return ivec3(texelFetch(mapTexture, ivec2(c.x, c.y + Y*c.z), 0));
+  return ivec3(texelFetch(mapTexture, ivec2(c.x, c.y + Y*c.z), 0) + 7u)/8;
 }
 int sdf(ivec3 c) {
-  return tex(c).r + max(0, c.z - Z)*8;
+  return tex(c).r + max(0, c.z - Z);
 }
 
 vec3 color(ivec3 c) {
   int p = tex(c).g;
-  vec3 base = p<=0?vec3(0):p<=24?vec3(0.71484,0.71484,0.71484):p<=97?vec3(0.523438,0.648438,0.589844):p<=103?vec3(0.132812,0.488281,0.316406):p<=225?vec3(0.843137,0.10196,0.12549):p<=255?vec3(0.996094,0.996094,0.996094):vec3(1);
+  vec3 base = p==0?vec3(0,0,0):p==1?vec3(0.133333,0.490196,0.317647):p==2?vec3(0.180392,0.662745,0.87451):p==3?vec3(0.235294,0.184314,0.254902):p==4?vec3(0.439216,0.486275,0.454902):p==5?vec3(0.505882,0.780392,0.831373):p==6?vec3(0.52549,0.65098,0.592157):p==7?vec3(0.666667,0.666667,0.666667):p==8?vec3(0.694118,0.705882,0.47451):p==9?vec3(0.741176,0.752941,0.729412):p==10?vec3(0.768627,0.384314,0.262745):p==11?vec3(0.780392,0.243137,0.227451):p==12?vec3(0.854902,0.788235,0.65098):p==13?vec3(1,1,1):vec3(1);
   base *= 1. - vec3(hash(c.x, c.y, c.z) % 255)/255./64.;
   return base;
 }
@@ -106,7 +106,7 @@ March march( vec3 rayPos, vec3 rayDir, int MAX_STEPS ) {
       break;
     }
 
-    dist = (sdf(res.cellPos) + 7) / 8;
+    dist = sdf(res.cellPos);
     res.minDist = min(float(dist), res.minDist);
 
     res.step++;
@@ -229,6 +229,7 @@ void main() { // Marching setup
     col *= 1.5;
   }
   FragColor.rgb = col;
+  FragColor.a = 1.0;
 
   /*
   //Compute cheap ambient occlusion from the SDF.
