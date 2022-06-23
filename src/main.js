@@ -257,6 +257,7 @@ function render(now) {
     debug.innerText = `${num(fps)} fps, ${num(upSample)} upscaling
         position (ft): ${ft(camera.pos.x)}, ${ft(camera.pos.y)}, ${ft(camera.pos.z)}
         velocity (ft/s): ${ft(camera.vel.x)}, ${ft(camera.vel.y)}, ${ft(camera.vel.z)}
+        controls: ${controls.move.x}, ${controls.move.y}
     `
 
     let Fx = Math.pow(controls.move.x, 3)
@@ -266,7 +267,7 @@ function render(now) {
     let ax = 169 * (Fx * cos - Fy * sin)
     let ay = 169 * (Fx * sin + Fy * cos)
 
-    
+
     let drag = 1 / 8
     ax -= camera.vel.x / delta * drag
     ay -= camera.vel.y / delta * drag
