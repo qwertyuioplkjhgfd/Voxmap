@@ -21,6 +21,9 @@ let then = 0
 let time = 0
 let running = false
 
+let debug_emx;
+let debug_emy;
+
 const camera = {
     pos: {
         x: -200,
@@ -165,6 +168,8 @@ async function main() {
     canvas.addEventListener('pointermove', (event) => {
         controls.rot.z -= event.movementX / size
         controls.rot.x -= event.movementY / size
+        debug_emx = event.movementX
+        debug_emy = event.movementY
         controls.rot.x = Math.max(-0.2, Math.min(controls.rot.x,
             0.2))
     })
@@ -254,11 +259,12 @@ function render(now) {
     const num = x => x.toFixed(1)
     const ft = x => num(x * 3)
 
-    debug.innerText = `debug 3
+    debug.innerText = `debug 4
         ${num(fps)} fps, ${num(upSample)} upscaling
         position (ft): ${ft(camera.pos.x)}, ${ft(camera.pos.y)}, ${ft(camera.pos.z)}
         velocity (ft/s): ${ft(camera.vel.x)}, ${ft(camera.vel.y)}, ${ft(camera.vel.z)}
         controls: ${controls.move.x}, ${controls.move.y}, rot: ${controls.rot.x}, ${controls.rot.y}
+        event: ${debug_emx}, ${debug_emy}
     `
 
     let Fx = Math.pow(controls.move.x, 3)
